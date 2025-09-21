@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:stackle_admin/controllers/auth_controller.dart';
 
 class Sidebar extends StatelessWidget {
   final bool isMobile;
   final int selectedIndex;
   final Function(int) onItemSelected;
+  final AuthController authController;
 
   const Sidebar({
     Key? key,
     required this.isMobile,
     required this.selectedIndex,
     required this.onItemSelected,
+    required this.authController,
   }) : super(key: key);
 
   @override
@@ -66,7 +69,7 @@ class Sidebar extends StatelessWidget {
           Container(
             margin: const EdgeInsets.all(16),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: authController.logout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFDC3545),
                 foregroundColor: Colors.white,

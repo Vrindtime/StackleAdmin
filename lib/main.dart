@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:stackle_admin/view/dashboard.dart';
-import 'package:stackle_admin/view/login_screen.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:stackle_admin/controllers/auth_controller.dart';
+import 'package:stackle_admin/controllers/auth_gate.dart';
 
-void main() {
+void main() async {
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -12,9 +15,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      home: const LoginScreen(),
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Stackle Admin',
+      home: const AuthGate(),
     );
   }
 }

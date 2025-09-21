@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:stackle_admin/view/dashboard.dart';
+import 'package:stackle_admin/controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -12,6 +12,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  final AuthController authController = AuthController();
 
   @override
   void dispose() {
@@ -215,17 +217,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Login successful!'),
-                      backgroundColor: Color(0xFFFFD700),
-                    ),
-                  );
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const DashboardScreen()),
-                  );
+                  authController.login(
+                      _emailController.text, _passwordController.text);
                 }
               },
               style: ElevatedButton.styleFrom(

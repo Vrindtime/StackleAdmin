@@ -27,7 +27,7 @@ class NotificationScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(context),
           const SizedBox(height: 32),
           _buildNotificationCard(),
         ],
@@ -35,16 +35,21 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         // Menu icon and title
         Row(
           children: [
-            Icon(
-              Icons.menu,
-              color: Colors.black87,
-              size: 24,
+            IconButton(
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.black87,
+                size: 24,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
             ),
             const SizedBox(width: 16),
             Text(
