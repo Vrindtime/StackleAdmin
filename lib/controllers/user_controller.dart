@@ -257,10 +257,22 @@ class UserController extends GetxController {
 
       final statusMap = await _service.getUserBlockStatus(userId: userId, token: token);
       userBlockStatus.value = BlockedUserStatus.fromJson(statusMap);
+      blockStatusError.value = '';
     } catch (e) {
-      blockStatusError.value = e.toString();
-      userBlockStatus.value = null;
-      print('UserController: fetchUserBlockStatus error: $e');
+      final message = e.toString();
+      if (message.contains('404')) {
+        // Treat missing record as not blocked instead of surfacing an error
+        userBlockStatus.value = BlockedUserStatus(
+          userId: userId,
+          isBlocked: false,
+          blockedAt: null,
+        );
+        blockStatusError.value = '';
+      } else {
+        blockStatusError.value = message;
+        userBlockStatus.value = null;
+        print('UserController: fetchUserBlockStatus error: $message');
+      }
     } finally {
       isLoadingBlockStatus.value = false;
     }

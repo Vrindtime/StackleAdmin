@@ -19,6 +19,19 @@ class ProfessionalDetailScreen extends StatefulWidget {
 class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   late UserController userController;
   late ProfessionalController professionalController;
+  final _formKey = GlobalKey<FormState>();
+  bool _isEditing = false;
+  bool _isSaving = false;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _preferredJobController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _placeController = TextEditingController();
+  final TextEditingController _districtController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _pincodeController = TextEditingController();
 
   @override
   void initState() {
@@ -31,6 +44,150 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     professionalController.currentClient.value = widget.client;
     userController.fetchUserById(widget.client.userId);
     professionalController.fetchClientById(widget.client.clientId);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _preferredJobController.dispose();
+    _descriptionController.dispose();
+    _placeController.dispose();
+    _districtController.dispose();
+    _stateController.dispose();
+    _pincodeController.dispose();
+    super.dispose();
+  }
+
+  void _populateFormControllers() {
+    final user = userController.user.value;
+    final client = professionalController.currentClient.value ?? widget.client;
+
+    _nameController.text = user?.name ?? '';
+    _emailController.text = user?.email ?? '';
+    _phoneController.text = user?.phone ?? '';
+    _preferredJobController.text = client.preferredJob ?? '';
+    _descriptionController.text = client.description ?? '';
+    _placeController.text = client.place ?? '';
+    _districtController.text = client.district ?? '';
+    _stateController.text = client.state ?? '';
+    _pincodeController.text = client.pincode ?? '';
+  }
+
+  void _startEditing() {
+    if (_isEditing) {
+      return;
+    }
+
+    final user = userController.user.value;
+    if (user == null) {
+      Get.snackbar(
+        'Please wait',
+        'User details are still loading. Try again in a moment.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange[100],
+        colorText: Colors.orange[800],
+      );
+      userController.fetchUserById(widget.client.userId);
+      return;
+    }
+
+    if (professionalController.isLoadingClient.value) {
+      Get.snackbar(
+        'Please wait',
+        'Client details are still loading. Try again shortly.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange[100],
+        colorText: Colors.orange[800],
+      );
+      return;
+    }
+
+    _populateFormControllers();
+    setState(() {
+      _isEditing = true;
+    });
+  }
+
+  void _cancelEditing() {
+    FocusScope.of(context).unfocus();
+    _populateFormControllers();
+    setState(() {
+      _isEditing = false;
+    });
+  }
+
+  Future<void> _saveChanges() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final user = userController.user.value;
+    final client = professionalController.currentClient.value ?? widget.client;
+
+    if (user == null) {
+      Get.snackbar(
+        'Error',
+        'User data unavailable. Please reload and try again.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    final trimmedName = _nameController.text.trim();
+    final trimmedEmail = _emailController.text.trim();
+    final trimmedPhone = _phoneController.text.trim();
+    final trimmedPreferredJob = _preferredJobController.text.trim();
+    final trimmedDescription = _descriptionController.text.trim();
+    final trimmedPlace = _placeController.text.trim();
+    final trimmedDistrict = _districtController.text.trim();
+    final trimmedState = _stateController.text.trim();
+    final trimmedPincode = _pincodeController.text.trim();
+
+    try {
+      final updatedUser = await userController.updateUser(
+        userId: user.id,
+        name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone,
+        role: user.role,
+      );
+
+      if (!updatedUser) {
+        return;
+      }
+
+      final updatedClient = await professionalController.updateClientProfile(
+        clientId: client.clientId,
+        preferredJob: trimmedPreferredJob,
+        description: trimmedDescription,
+        place: trimmedPlace,
+        district: trimmedDistrict,
+        state: trimmedState,
+        pincode: trimmedPincode,
+      );
+
+      if (updatedClient && mounted) {
+        setState(() {
+          _isEditing = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 
   String _resolveMediaUrl(String url) {
@@ -95,25 +252,28 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               );
             }
             return SingleChildScrollView(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _buildUserInfoSection(),
-                const SizedBox(height: 32),
-                _buildClientInfoSection(),
-                const SizedBox(height: 32),
-                _buildLocationSection(),
-                const SizedBox(height: 32),
-                _buildStatusSection(),
-                const SizedBox(height: 32),
-                _buildExperienceSection(),
-                const SizedBox(height: 32),
-                _buildEducationSection(),
-                const SizedBox(height: 32),
-                _buildCertificatesSection(),
-                const SizedBox(height: 32),
-                _buildLanguagesSection(),
-                const SizedBox(height: 32),
-                _buildApprovalSection(),
-              ]),
+              child: Form(
+                key: _formKey,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  _buildUserInfoSection(),
+                  const SizedBox(height: 32),
+                  _buildClientInfoSection(),
+                  const SizedBox(height: 32),
+                  _buildLocationSection(),
+                  const SizedBox(height: 32),
+                  _buildStatusSection(),
+                  const SizedBox(height: 32),
+                  _buildExperienceSection(),
+                  const SizedBox(height: 32),
+                  _buildEducationSection(),
+                  const SizedBox(height: 32),
+                  _buildCertificatesSection(),
+                  const SizedBox(height: 32),
+                  _buildLanguagesSection(),
+                  const SizedBox(height: 32),
+                  _buildApprovalSection(),
+                ]),
+              ),
             );
           }),
         )
@@ -160,7 +320,42 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
           ]);
         }),
       ),
-      const SizedBox(width: 8),
+      if (_isEditing) ...[
+        OutlinedButton(
+          onPressed: _isSaving ? null : _cancelEditing,
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            side: BorderSide(color: Colors.grey.shade400),
+          ),
+          child: const Text('Cancel'),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _saveChanges,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green[600],
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          ),
+          child: _isSaving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.save, size: 18),
+                    SizedBox(width: 6),
+                    Text('Save'),
+                  ],
+                ),
+        ),
+        const SizedBox(width: 8),
+      ] else
+        const SizedBox(width: 8),
       Obx(() {
         final user = userController.user.value;
         final isLoadingStatus = userController.isLoadingBlockStatus.value;
@@ -185,6 +380,9 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               case 'reject_professional':
                 _handleRejection();
                 break;
+              case 'edit_details':
+                _startEditing();
+                break;
               case 'block_user':
                 _handleBlockUser();
                 break;
@@ -195,6 +393,20 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
           },
           itemBuilder: (_) {
             final items = <PopupMenuEntry<String>>[];
+
+            items.add(PopupMenuItem<String>(
+              value: 'edit_details',
+              enabled: !_isEditing && user != null,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.edit, color: !_isEditing && user != null ? Colors.blue : Colors.grey),
+                title: Text(_isEditing ? 'Editing active' : 'Edit Details'),
+                subtitle: _isEditing ? const Text('Finish editing to access actions') : null,
+              ),
+            ));
+
+            items.add(const PopupMenuDivider());
 
             if (isApproved) {
               items.add(const PopupMenuItem<String>(
@@ -266,6 +478,24 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               return items;
             }
 
+            final statusError = userController.blockStatusError.value;
+            if (blockStatus == null) {
+              items.add(PopupMenuItem<String>(
+                value: 'status_unavailable',
+                enabled: false,
+                child: ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.info_outline, color: statusError.isEmpty ? Colors.grey : Colors.redAccent),
+                  title: Text(statusError.isEmpty ? 'Block status unavailable' : 'Failed to load block status'),
+                  subtitle: statusError.isEmpty
+                      ? const Text('Open again in a moment to refresh')
+                      : Text(statusError, maxLines: 2, overflow: TextOverflow.ellipsis),
+                ),
+              ));
+              return items;
+            }
+
             if (isBlocked) {
               items.add(PopupMenuItem<String>(
                 value: 'unblock_user',
@@ -303,7 +533,8 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       titleColor: Colors.blue[600]!,
       title: 'User Information',
       child: Obx(() {
-        if (userController.isLoading.value) {
+        final isLoading = userController.isLoading.value;
+        if (isLoading && !_isEditing) {
           return const Center(child: CircularProgressIndicator());
         }
         if (userController.hasError.value) {
@@ -317,9 +548,40 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         if (user == null) {
           return const Text('No user data available', style: TextStyle(color: Colors.grey));
         }
+        if (_isEditing) {
+          return Column(children: [
+            _editableTextField(
+              controller: _nameController,
+              label: 'Name',
+              icon: Icons.person_outline,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Name is required' : null,
+            ),
+            _editableTextField(
+              controller: _emailController,
+              label: 'Email',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) return 'Email is required';
+                if (!GetUtils.isEmail(text)) return 'Enter a valid email';
+                return null;
+              },
+            ),
+            _editableTextField(
+              controller: _phoneController,
+              label: 'Phone',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Phone number is required' : null,
+            ),
+            _infoRow('Role', user.role, Icons.admin_panel_settings_outlined),
+            _infoRow('User ID', user.id.toString(), Icons.badge_outlined),
+          ]);
+        }
         return Column(children: [
           _infoRow('Name', user.name, Icons.person_outline),
-            _infoRow('Email', user.email, Icons.email_outlined),
+          _infoRow('Email', user.email, Icons.email_outlined),
           _infoRow('Phone', user.phone, Icons.phone_outlined),
           _infoRow('Role', user.role, Icons.admin_panel_settings_outlined),
           _infoRow('User ID', user.id.toString(), Icons.badge_outlined),
@@ -337,10 +599,27 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         final client = professionalController.currentClient.value ?? widget.client;
         return Column(children: [
           _infoRow('Client ID', client.clientId.toString(), Icons.tag),
-          _infoRow('Preferred Job', client.preferredJob ?? 'Not specified', Icons.work),
+          if (_isEditing)
+            _editableTextField(
+              controller: _preferredJobController,
+              label: 'Preferred Job',
+              icon: Icons.work,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Preferred job is required' : null,
+            )
+          else
+            _infoRow('Preferred Job', client.preferredJob ?? 'Not specified', Icons.work),
           _infoRow('Gender', client.gender ?? 'Not specified', Icons.person),
           _infoRow('Date of Birth', client.dob != null ? client.dob!.toLocal().toString().split(' ')[0] : 'Not specified', Icons.cake),
-          if (client.description != null && client.description!.isNotEmpty)
+          if (_isEditing)
+            _editableTextField(
+              controller: _descriptionController,
+              label: 'Description',
+              icon: Icons.description,
+              keyboardType: TextInputType.multiline,
+              minLines: 3,
+              maxLines: 4,
+            )
+          else if (client.description != null && client.description!.isNotEmpty)
             _infoRow('Description', client.description!, Icons.description, multiline: true),
         ]);
       }),
@@ -355,10 +634,43 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       child: Obx(() {
         final client = professionalController.currentClient.value ?? widget.client;
         return Column(children: [
-          _infoRow('Place', client.place ?? 'Not specified', Icons.home),
-          _infoRow('District', client.district ?? 'Not specified', Icons.location_city),
-          _infoRow('State', client.state ?? 'Not specified', Icons.map),
-          _infoRow('Pincode', client.pincode ?? 'Not specified', Icons.local_post_office),
+          if (_isEditing)
+            _editableTextField(
+              controller: _placeController,
+              label: 'Place',
+              icon: Icons.home,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Place is required' : null,
+            )
+          else
+            _infoRow('Place', client.place ?? 'Not specified', Icons.home),
+          if (_isEditing)
+            _editableTextField(
+              controller: _districtController,
+              label: 'District',
+              icon: Icons.location_city,
+              validator: (value) => value == null || value.trim().isEmpty ? 'District is required' : null,
+            )
+          else
+            _infoRow('District', client.district ?? 'Not specified', Icons.location_city),
+          if (_isEditing)
+            _editableTextField(
+              controller: _stateController,
+              label: 'State',
+              icon: Icons.map,
+              validator: (value) => value == null || value.trim().isEmpty ? 'State is required' : null,
+            )
+          else
+            _infoRow('State', client.state ?? 'Not specified', Icons.map),
+          if (_isEditing)
+            _editableTextField(
+              controller: _pincodeController,
+              label: 'Pincode',
+              icon: Icons.local_post_office,
+              keyboardType: TextInputType.number,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Pincode is required' : null,
+            )
+          else
+            _infoRow('Pincode', client.pincode ?? 'Not specified', Icons.local_post_office),
           if (client.latitude != null && client.longitude != null)
             _infoRow('Coordinates', '${client.latitude}, ${client.longitude}', Icons.gps_fixed),
         ]);
@@ -371,31 +683,43 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       titleIcon: Icons.verified_user,
       titleColor: Colors.purple[600]!,
       title: 'Status Information',
-      child: Column(children: [
-        _statusRow('Admin Approved', widget.client.isAdminApproved, Icons.admin_panel_settings),
-        _statusRow('KYC Verified', widget.client.isKycVerified, Icons.verified),
-        _infoRow('Created Date', widget.client.formattedCreatedDate, Icons.calendar_today),
-        _infoRow('Updated Date', widget.client.updatedAt.toLocal().toString(), Icons.update),
-      ]),
+      child: Obx(() {
+        final client = professionalController.currentClient.value ?? widget.client;
+        return Column(children: [
+          _statusRow('Admin Approved', client.isAdminApproved, Icons.admin_panel_settings),
+          _statusRow('KYC Verified', client.isKycVerified, Icons.verified),
+          _infoRow('Created Date', client.formattedCreatedDate, Icons.calendar_today),
+          _infoRow('Updated Date', client.updatedAt.toLocal().toString(), Icons.update),
+        ]);
+      }),
     );
   }
 
   Widget _buildExperienceSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
-      const SizedBox(height: 16),
-      if (widget.client.experiences.isEmpty)
-        const Text('No experience information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
-      else
-        Wrap(spacing: 16, runSpacing: 16, children: widget.client.experiences.map((exp) => _experienceCard(
-              exp.title ?? 'Position Not Specified',
-              exp.company ?? 'Company Not Specified',
-              exp.duration ?? 'Duration Not Specified',
-              widget.client.location,
-              exp.description ?? 'No description provided',
-              exp.experienceCertificate ?? '',
-            )).toList()),
-    ]);
+    return Obx(() {
+      final client = professionalController.currentClient.value ?? widget.client;
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const SizedBox(height: 16),
+        if (client.experiences.isEmpty)
+          const Text('No experience information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+        else
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: client.experiences
+                .map((exp) => _experienceCard(
+                      exp.title ?? 'Position Not Specified',
+                      exp.company ?? 'Company Not Specified',
+                      exp.duration ?? 'Duration Not Specified',
+                      client.location,
+                      exp.description ?? 'No description provided',
+                      exp.experienceCertificate ?? '',
+                    ))
+                .toList(),
+          ),
+      ]);
+    });
   }
 
   Widget _experienceCard(String title, String company, String duration, String location,
@@ -438,25 +762,35 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   }
 
   Widget _buildEducationSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Education', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
-      const SizedBox(height: 16),
-      if (widget.client.education.isEmpty)
-        const Text('No education information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
-      else
-        Wrap(spacing: 16, runSpacing: 16, children: widget.client.education.map((edu) => _educationCard(
-              edu.degree ?? 'Degree Not Specified',
-              edu.institution ?? 'Institution Not Specified',
-              (edu.startDate != null && edu.endDate != null) ? '${edu.startDate} - ${edu.endDate}' : 'Duration Not Specified',
-              edu.fieldOfStudy,
-              edu.grade,
-              edu.certificate ?? '',
-            )).toList()),
-    ]);
+    return Obx(() {
+      final client = professionalController.currentClient.value ?? widget.client;
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Education', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const SizedBox(height: 16),
+        if (client.education.isEmpty)
+          const Text('No education information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+        else
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: client.education
+                .map((edu) => _educationCard(
+                      edu.degree ?? 'Degree Not Specified',
+                      edu.institution ?? 'Institution Not Specified',
+                      (edu.startDate != null && edu.endDate != null) ? '${edu.startDate} - ${edu.endDate}' : 'Duration Not Specified',
+                      client.location,
+                      edu.fieldOfStudy,
+                      edu.grade,
+                      edu.certificate ?? '',
+                    ))
+                .toList(),
+          ),
+      ]);
+    });
   }
 
-  Widget _educationCard(String degree, String university, String duration,
-      [String? fieldOfStudy, String? grade, String certificateUrl = '']) {
+  Widget _educationCard(String degree, String university, String duration, String location,
+    [String? fieldOfStudy, String? grade, String certificateUrl = '']) {
     return Container(
       width: 200,
       padding: const EdgeInsets.all(16),
@@ -486,26 +820,28 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         Row(children: [
           const Icon(Icons.location_on, size: 12, color: Colors.orange),
           const SizedBox(width: 4),
-          Expanded(child: Text(widget.client.location.isNotEmpty ? widget.client.location : 'Location not specified', style: const TextStyle(fontSize: 10, color: Colors.grey))),
+          Expanded(child: Text(location.isNotEmpty ? location : 'Location not specified', style: const TextStyle(fontSize: 10, color: Colors.grey))),
         ]),
       ]),
     );
   }
 
   Widget _buildCertificatesSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Certificates', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
-      const SizedBox(height: 16),
-      if (widget.client.certificates.isEmpty)
-        const Text('No certificates information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
-      else
-        ListView.builder(
-          shrinkWrap: true,
+    return Obx(() {
+      final client = professionalController.currentClient.value ?? widget.client;
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Certificates', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const SizedBox(height: 16),
+        if (client.certificates.isEmpty)
+          const Text('No certificates information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+        else
+          ListView.builder(
+            shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-          itemCount: widget.client.certificates.length,
-          itemBuilder: (_, i) {
-            final cert = widget.client.certificates[i];
-            return Container(
+            itemCount: client.certificates.length,
+            itemBuilder: (_, i) {
+              final cert = client.certificates[i];
+              return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), boxShadow: [
@@ -535,22 +871,36 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
             );
           },
         )
-    ]);
+      ]);
+    });
   }
 
   Widget _buildLanguagesSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Languages', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
-      const SizedBox(height: 16),
-      if (widget.client.languages.isEmpty)
-        const Text('No language information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
-      else
-        Wrap(spacing: 12, runSpacing: 12, children: widget.client.languages.map((lang) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.blue[200]!)),
-              child: Text(lang.language ?? 'Unknown Language', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            )).toList())
-    ]);
+    return Obx(() {
+      final client = professionalController.currentClient.value ?? widget.client;
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Languages', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const SizedBox(height: 16),
+        if (client.languages.isEmpty)
+          const Text('No language information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+        else
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: client.languages
+                .map((lang) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: Text(lang.language ?? 'Unknown Language', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    ))
+                .toList(),
+          )
+      ]);
+    });
   }
 
   Widget _buildApprovalSection() {
@@ -723,6 +1073,54 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         const SizedBox(height: 20),
         child
       ]),
+    );
+  }
+
+  Widget _editableTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    FormFieldValidator<String>? validator,
+    TextInputType? keyboardType,
+    int minLines = 1,
+    int maxLines = 1,
+  }) {
+    final effectiveMinLines = minLines < 1 ? 1 : minLines;
+    final effectiveMaxLines = maxLines < effectiveMinLines ? effectiveMinLines : maxLines;
+    final isMultiline = effectiveMaxLines > 1;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        crossAxisAlignment: isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 120,
+            child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextFormField(
+              controller: controller,
+              validator: validator,
+              minLines: effectiveMinLines,
+              maxLines: effectiveMaxLines,
+              keyboardType: keyboardType,
+              enabled: !_isSaving,
+              style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
