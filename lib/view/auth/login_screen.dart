@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -179,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: _inputDecoration('Email', 'example@email.com'),
+            decoration: _inputDecoration('Email', 'test@admin.com'),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
@@ -197,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextFormField(
             controller: _passwordController,
             obscureText: true,
-            decoration: _inputDecoration('Password', 'At least 8 characters'),
+            decoration: _inputDecoration('Password', 'At least 8 characters: Test@123'),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your password';
@@ -231,6 +232,25 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text(
                 'Sign in',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Forgot Password Link
+          Center(
+            child: TextButton(
+              onPressed: () {
+                Get.toNamed('/forgot-password');
+              },
+              child: const Text(
+                'Forgot Password?',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue,
+                ),
               ),
             ),
           ),

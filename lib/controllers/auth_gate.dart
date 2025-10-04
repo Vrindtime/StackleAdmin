@@ -19,6 +19,7 @@ class _AuthGateState extends State<AuthGate> {
   final GetStorage _storage = GetStorage();
 
   bool _isInitialized = false;
+  bool _isNavigating = false; // Prevent multiple navigation calls
 
   @override
   void initState() {
@@ -32,6 +33,9 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _initializeAuth() async {
     try {
       print('AuthGate: Initializing authentication...');
+      
+      // Reset navigation flag
+      _isNavigating = false;
 
       // Wait a bit for storage to be ready
       await Future.delayed(const Duration(milliseconds: 100));
@@ -126,20 +130,34 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   void _navigateToLogin() {
-    if (mounted) {
+    if (mounted && !_isNavigating) {
+      _isNavigating = true;
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          Get.offAll(() => const LoginScreen());
+        if (mounted && !Get.isDialogOpen!) {
+          try {
+            Get.offAllNamed('/login');
+          } catch (e) {
+            print('AuthGate: Navigation error: $e');
+            // Fallback to direct navigation
+            Get.offAll(() => const LoginScreen());
+          }
         }
       });
     }
   }
 
   void _navigateToDashboard() {
-    if (mounted) {
+    if (mounted && !_isNavigating) {
+      _isNavigating = true;
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          Get.offAll(() => const MainDashboard());
+        if (mounted && !Get.isDialogOpen!) {
+          try {
+            Get.offAllNamed('/dashboard');
+          } catch (e) {
+            print('AuthGate: Navigation error: $e');
+            // Fallback to direct navigation
+            Get.offAll(() => const MainDashboard());
+          }
         }
       });
     }

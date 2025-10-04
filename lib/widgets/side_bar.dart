@@ -8,12 +8,12 @@ class Sidebar extends StatelessWidget {
   final AuthController authController;
 
   const Sidebar({
-    Key? key,
+    super.key,
     required this.isMobile,
     required this.selectedIndex,
     required this.onItemSelected,
     required this.authController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(Icons.person_outline, 'Manage Professionals', 2),
                 _buildMenuItem(Icons.account_circle_outlined, 'Account', 3),
                 _buildMenuItem(Icons.library_books_outlined, 'Requests', 4),
-                _buildMenuItem(Icons.settings_outlined, 'Settings', 5),
+                _buildMenuItem(Icons.lock_outline, 'Blocked', 5),
               ],
             ),
           ),
@@ -120,4 +120,5 @@ class Sidebar extends StatelessWidget {
       ),
     );
   }
+
 }

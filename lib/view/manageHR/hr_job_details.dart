@@ -1,453 +1,227 @@
 import 'package:flutter/material.dart';
+import 'package:stackle_admin/data/models/job.dart' as job_model;
+import 'package:stackle_admin/core/api_base.dart';
+import 'package:stackle_admin/core/pdf_viewer.dart';
 
 class HRJobDetailScreen extends StatelessWidget {
-  const HRJobDetailScreen({Key? key}) : super(key: key);
+  final job_model.Job job;
+  final String organizationName;
+  const HRJobDetailScreen({Key? key, required this.job, required this.organizationName}) : super(key: key);
+
+  String _resolveMediaUrl(String url) {
+    if (url.isEmpty) return url;
+    final trimmed = url.trim();
+    final baseRoot = baseUrl.replaceFirst(RegExp(r'/api/?$'), '');
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+      final path = uri.path;
+      final mediaIndex = path.indexOf('/media/');
+      if (mediaIndex != -1) {
+        final rel = path.substring(mediaIndex + '/media/'.length);
+        return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
+      }
+      try {
+        if (Uri.parse(baseRoot).host == uri.host) return trimmed;
+      } catch (_) {}
+      return trimmed; // external URL
+    }
+
+    if (trimmed.startsWith('/media/')) {
+      return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}$trimmed';
+    }
+    final idx = trimmed.indexOf('/media/');
+    if (idx != -1) {
+      final rel = trimmed.substring(idx + '/media/'.length);
+      return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
+    }
+    final rel = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+    return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: Row(
-        children: [
-          // Use the previously created Sidebar widget
-          // const Sidebar(),
-
-          // Main content area with overlay
-          Expanded(
-            child: Stack(
-              children: [
-                // Background content (blurred)
-                _buildBackgroundContent(context),
-
-                // Modal overlay
-                Container(
-                  color: Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: _buildJobDetailModal(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBackgroundContent(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: _getHorizontalPadding(context),
-        vertical: 24,
-      ),
-      child: Column(
-        children: [
-          _buildHeader(context),
-          const SizedBox(height: 24),
-          // Background content (blurred/grayed out)
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE5E7EB),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Color(0xFF6B7280),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFFBFDBFE),
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.local_hospital,
-                color: const Color(0xFF3B82F6),
-                size: 28,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sunrise Hospital',
-                  style: TextStyle(
-                    fontSize: _getTitleFontSize(context),
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF6B7280),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '+91 123 456 7890',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: Color(0xFF9CA3AF),
-              size: 24,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildJobDetailModal(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final modalWidth = screenWidth > 800 ? 600.0 : screenWidth * 0.9;
-
-    return Container(
-      width: modalWidth,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-        maxWidth: 600,
-      ),
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildModalHeader(),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: _buildModalContent(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModalHeader() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFF3F4F6),
-            width: 1,
-          ),
+      appBar: AppBar(
+        backgroundColor: Colors.black87,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back,color: Colors.grey,),
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Back',
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF4285F4),
-                  Color(0xFF34A853),
-                  Color(0xFFFBBC05),
-                  Color(0xFFEA4335),
-                ],
-                stops: [0.0, 0.33, 0.66, 1.0],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: const Center(
-              child: Text(
-                'G',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'UI/UX Designer',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Text(
-                      'Google',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF6B7280),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 4,
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF6B7280),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'California',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF6B7280),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 4,
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF6B7280),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      '1 day ago',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF6B7280),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Experience : 1 - 2 yr',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModalContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSection(
-          title: 'Description',
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem ...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF6B7280),
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        _buildSection(
-          title: 'Requirements',
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBulletPoint(
-                  'Sed ut perspiciatis unde omnis iste natus error sit.'),
-              _buildBulletPoint(
-                  'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur adipisci velit.'),
-              _buildBulletPoint(
-                  'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.'),
-              _buildBulletPoint(
-                  'Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildInfoCard('Qualification', 'Bachelor\'s Degree'),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildInfoCard('Experience', '3 Years'),
-            ),
+            Text(job.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600,color: Colors.white)),
+            const SizedBox(height: 2),
+            Text(organizationName, style: const TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildInfoCard('Job Type', 'Full-Time'),
+        actions: [
+          if (job.id != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              child: _chip(Icons.tag, 'ID: ${job.id}'),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildInfoCard('Specialization', 'Design'),
-            ),
-          ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: _chip(job.isSubscribed ? Icons.verified : Icons.money_off, job.isSubscribed ? 'Subscribed' : 'Not Subscribed'),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: _content(theme),
+      ),
+    );
+  }
+
+  Widget _chip(IconData icon, String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.grey[300]!),
         ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 14, color: Colors.grey[700]),
+          const SizedBox(width: 6),
+          Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        ]),
+      );
+
+  Widget _content(ThemeData theme) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _section('Description', Text(job.description.isEmpty ? 'No description provided.' : job.description, style: const TextStyle(fontSize: 14, height: 1.5, color: Colors.black87))),
+      const SizedBox(height: 24),
+      _section('Qualification & Experience', Wrap(spacing: 16, runSpacing: 16, children: [
+        _infoCard('Qualification', job.qualification.isEmpty ? 'N/A' : job.qualification),
+        _infoCard('Experience', job.experienceYears != null ? '${job.experienceYears} years' : 'Not specified'),
+        _infoCard('Salary', job.salary.isEmpty ? '—' : job.salary),
+      ])),
+      const SizedBox(height: 24),
+      _section('Contact Info', Wrap(spacing: 16, runSpacing: 16, children: [
+        _infoCard('Phone', job.phone.isEmpty ? '—' : job.phone),
+        _infoCard('Email', job.email.isEmpty ? '—' : job.email),
+        _infoCard('Location', '${job.city}, ${job.state}, ${job.country}'),
+        _infoCard('Pincode', job.pincode),
+      ])),
+      const SizedBox(height: 24),
+      if (job.jobTypes.isNotEmpty)
+        _section('Job Types', Wrap(spacing: 8, runSpacing: 8, children: job.jobTypes.map((t) => _pill(t.jobType)).toList())),
+      if (job.jobSkills.isNotEmpty) ...[
         const SizedBox(height: 24),
-        _buildSection(
-          title: 'Facilities and Others',
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBulletPoint('Medical'),
-              _buildBulletPoint('Dental'),
-              _buildBulletPoint('Technical Certification'),
-              _buildBulletPoint('Meal Allowance'),
-              _buildBulletPoint('Transport Allowance'),
-              _buildBulletPoint('Regular Hours'),
-              _buildBulletPoint('Mondays-Fridays'),
-            ],
-          ),
-        ),
+        _section('Skills', Wrap(spacing: 8, runSpacing: 8, children: job.jobSkills.map((s) => _pill(s.skill)).toList())),
       ],
+      const SizedBox(height: 24),
+      if (job.jobImages.isNotEmpty) _section('Images & Documents', _mediaGrid()),
+    ]);
+  }
+
+  Widget _mediaGrid() {
+    final items = job.jobImages;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final entry = items[index];
+        final url = _resolveMediaUrl(entry.url);
+        final isPdf = url.toLowerCase().endsWith('.pdf');
+        return GestureDetector(
+          onTap: () {
+            if (isPdf) {
+              viewPdfInline(job.title, url, context);
+            } else {
+              showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                        child: Stack(children: [
+                          Positioned.fill(
+                            child: Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Center(child: Text('Failed to load'))),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          )
+                        ]),
+                      ));
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[100],
+            ),
+            child: Stack(children: [
+              Positioned.fill(
+                child: isPdf
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.picture_as_pdf, size: 40, color: Colors.red),
+                            SizedBox(height: 6),
+                            Text('PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600))
+                          ],
+                        ),
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image))),
+                      ),
+              ),
+            ]),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSection({required String title, required Widget content}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
-          ),
+  Widget _pill(String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(30),
         ),
-        const SizedBox(height: 12),
-        content,
-      ],
-    );
-  }
+        child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.blue)),
+      );
 
-  Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
+  Widget _section(String title, Widget child) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 4,
-            height: 4,
-            margin: const EdgeInsets.only(top: 8, right: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF6B7280),
-              shape: BoxShape.circle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-                height: 1.5,
-              ),
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          child,
         ],
-      ),
-    );
-  }
+      );
 
-  Widget _buildInfoCard(String title, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
-          ),
+  Widget _infoCard(String title, String value) => Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
         ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 6),
+            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          ],
         ),
-      ],
-    );
-  }
-
-  double _getHorizontalPadding(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > 1200) return 40;
-    if (screenWidth > 768) return 32;
-    return 24;
-  }
-
-  double _getTitleFontSize(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > 1200) return 24;
-    if (screenWidth > 768) return 22;
-    return 20;
-  }
+      );
 }

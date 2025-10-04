@@ -74,63 +74,6 @@ class _ManageHRProfessionalsScreenState
             color: Colors.grey[900],
           ),
         ),
-        const Spacer(),
-        // Notification and Profile
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.notifications_outlined,
-                size: 20,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Nived Manoj',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[900],
-                      ),
-                    ),
-                    Text(
-                      'Admin',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -240,6 +183,7 @@ class _ManageHRProfessionalsScreenState
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          dropdownColor: Colors.white,
           value: value,
           hint: Text(hint, style: TextStyle(color: Colors.grey[600])),
           icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),

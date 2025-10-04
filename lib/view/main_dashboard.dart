@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
 import 'package:stackle_admin/view/accounts/accounts_screen.dart';
 import 'package:stackle_admin/view/dashboard.dart';
-import 'package:stackle_admin/view/manageHR/managehr_screen.dart';
+import 'package:stackle_admin/view/manageHR/manage_hr_screen.dart';
 import 'package:stackle_admin/view/manage_Professionals/manage_professional_screen.dart';
 import 'package:stackle_admin/view/requests/request_screen.dart';
 import 'package:stackle_admin/view/settings/blocked_users_screen.dart';
@@ -22,12 +23,18 @@ class _MainDashboardState extends State<MainDashboard> {
   @override
   void initState() {
     super.initState();
-    authController = AuthController();
+    // Use Get.put to register the AuthController so it can be found by other controllers
+    authController = Get.put(AuthController());
+    
+    // Fetch current user data after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      authController.fetchCurrentUser();
+    });
   }
 
   List<Widget> get _screens => [
         DashboardScreen(authController: authController),
-        const ManageHRProfessionalsScreen(),
+        ManageHRScreen(),
         const ManageProfessionalsScreen(),
         const AccountsScreen(),
         const RequestsScreen(),
