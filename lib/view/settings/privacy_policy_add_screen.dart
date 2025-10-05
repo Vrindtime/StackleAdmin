@@ -1,54 +1,205 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:stackle_admin/controllers/privacy_policy_controller.dart';
+import 'package:stackle_admin/data/models/privacy_policy.dart';
 
-class PrivacyPolicyAddScreen extends StatelessWidget {
+class PrivacyPolicyAddScreen extends StatefulWidget {
   const PrivacyPolicyAddScreen({Key? key}) : super(key: key);
 
   @override
+  State<PrivacyPolicyAddScreen> createState() => _PrivacyPolicyAddScreenState();
+}
+
+class _PrivacyPolicyAddScreenState extends State<PrivacyPolicyAddScreen> {
+  late final PrivacyPolicyController _controller;
+  final TextEditingController _textController = TextEditingController();
+  Worker? _policyWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.put(PrivacyPolicyController());
+    _policyWorker = ever<PrivacyPolicy?>(_controller.policy, (policy) {
+      if (!mounted) return;
+      final text = policy?.text ?? '';
+      if (_textController.text != text) {
+        _textController.text = text;
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.loadPrivacyPolicy();
+    });
+  }
+
+  @override
+  void dispose() {
+    _policyWorker?.dispose();
+    _textController.dispose();
+    if (Get.isRegistered<PrivacyPolicyController>()) {
+      Get.delete<PrivacyPolicyController>();
+    }
+    super.dispose();
+  }
+
+  Future<void> _handleSave() async {
+    final text = _textController.text;
+    final hasPolicy = _controller.policy.value != null;
+    if (hasPolicy) {
+      await _controller.updatePrivacyPolicy(text);
+    } else {
+      await _controller.createPrivacyPolicy(text);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width >= 1024) {
+      return _buildDesktopLayout(context);
+    }
+    if (width >= 768) {
+      return _buildTabletLayout(context);
+    }
+    return _buildMobileLayout(context);
+  }
+
+  Widget _buildDesktopLayout(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC), // Beige background
+      backgroundColor: const Color(0xFFF5F5DC),
       body: Row(
         children: [
-          // Sidebar - using previously created widget
-          // const Sidebar(),
-
-          // Main content area
           Expanded(
-            child: _buildMainContent(context),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDesktopHeader(),
+                  const SizedBox(height: 32),
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: _buildPolicyEditor(fillAvailable: true, isCompact: false),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMainContent(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 32),
-          Expanded(
-            child: _buildPrivacyPolicyContent(),
+  Widget _buildTabletLayout(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5DC),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTabletHeader(),
+              const SizedBox(height: 24),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: _buildPolicyEditor(fillAvailable: true, isCompact: true),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildMobileLayout(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5DC),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF5F5DC),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text(
+          'Privacy Policy',
+          style: TextStyle(color: Colors.black87),
+        ),
+        actions: [
+          Obx(
+            () => IconButton(
+              tooltip: 'Refresh',
+              onPressed: _controller.isLoading.value
+                  ? null
+                  : () => _controller.loadPrivacyPolicy(),
+              icon: const Icon(Icons.refresh),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: _buildPolicyEditor(fillAvailable: false, isCompact: true),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopHeader() {
     return Row(
       children: [
-        // Menu icon and title
         Row(
           children: [
-            Icon(
-              Icons.menu,
-              color: Colors.black87,
-              size: 24,
+            IconButton(
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.black87,
+                size: 24,
+              ),
+              onPressed: ()=> Navigator.of(context).pop(),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Text(
               'Settings',
               style: TextStyle(
@@ -60,10 +211,7 @@ class PrivacyPolicyAddScreen extends StatelessWidget {
             ),
           ],
         ),
-
         const Spacer(),
-
-        // Right side - notification bell and user profile
         Row(
           children: [
             Container(
@@ -72,20 +220,18 @@ class PrivacyPolicyAddScreen extends StatelessWidget {
                 color: Colors.white.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.notifications_outlined,
                 color: Colors.black54,
                 size: 20,
               ),
             ),
             const SizedBox(width: 16),
-
-            // User profile section
             Row(
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+                  children: const [
                     Text(
                       'Nived Manoj',
                       style: TextStyle(
@@ -107,11 +253,12 @@ class PrivacyPolicyAddScreen extends StatelessWidget {
                 Container(
                   width: 44,
                   height: 44,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
                       image: NetworkImage(
-                          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'),
+                        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+                      ),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -124,469 +271,10 @@ class PrivacyPolicyAddScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPrivacyPolicyContent() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with Edit Policy button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Privacy Policy',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2D2D2D),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Edit Policy',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Policy metadata
-            _buildPolicyMetadata(),
-
-            const SizedBox(height: 24),
-
-            // Policy content
-            _buildPolicyContent(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPolicyMetadata() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Effective Date: [Insert Date]',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black54,
-            height: 1.5,
-          ),
-        ),
-        Text(
-          'Last Updated: [Insert Date]',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black54,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Stackle ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this policy carefully to understand our views and practices regarding your personal data.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-            height: 1.6,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPolicyContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSection('1. Information We Collect', [
-          _buildSubSection('a. Personal Information',
-              'We may collect personal details such as:', [
-            'Full name',
-            'Email address',
-            'Phone number',
-            'Organization name',
-            'Designation',
-            'Location',
-          ]),
-          _buildSubSection(
-              'b. Usage Data', 'When you use our platform, we collect:', [
-            'Device type and operating system',
-            'IP address',
-            'App usage behavior',
-            'Log data',
-          ]),
-          _buildSubSection(
-              'c. Communication Data', 'Includes any messages sent via:', [
-            'In-app chat',
-            'Support requests',
-            'Feedback forms',
-          ]),
-        ]),
-        _buildSection('2. How We Use Your Information', [
-          _buildSubSection('', 'We use your data to:', [
-            'Facilitate recruitment-related communication',
-            'Provide personalized services',
-            'Maintain security and prevent fraud',
-            'Improve app functionality and user experience',
-            'Respond to your queries and support requests',
-          ]),
-        ]),
-        _buildSection('3. Sharing Your Information', [
-          _buildSubSection(
-              '',
-              'We do not sell your personal data. However, we may share data:',
-              [
-                'With trusted service providers for hosting and maintenance',
-                'With law enforcement when legally required',
-                'With healthcare organizations for recruitment purposes (only with consent)',
-              ]),
-        ]),
-        _buildSection('4. Data Retention', [
-          _buildSubSection(
-              '',
-              'We retain your personal information only as long as necessary to fulfill the purposes outlined in this policy or as required by law.',
-              []),
-        ]),
-        _buildSection('5. Data Security', [
-          _buildSubSection(
-              '',
-              'We use industry-standard measures to protect your data, including:',
-              [
-                'Encryption',
-                'Secure servers',
-              ]),
-        ]),
-      ],
-    );
-  }
-
-  Widget _buildSection(String title, List<Widget> content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 20),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...content,
-      ],
-    );
-  }
-
-  Widget _buildSubSection(
-      String subtitle, String description, List<String> bulletPoints) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (subtitle.isNotEmpty) ...[
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 4),
-        ],
-        if (description.isNotEmpty) ...[
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-        ...bulletPoints
-            .map((point) => Padding(
-                  padding: const EdgeInsets.only(left: 16, bottom: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '• ',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                          height: 1.6,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          point,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                            height: 1.6,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ))
-            .toList(),
-      ],
-    );
-  }
-}
-
-// Responsive wrapper for different screen sizes
-class ResponsivePrivacyPolicyAddScreen extends StatelessWidget {
-  const ResponsivePrivacyPolicyAddScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 768) {
-          // Mobile layout
-          return _buildMobileLayout(context);
-        } else if (constraints.maxWidth < 1024) {
-          // Tablet layout
-          return _buildTabletLayout(context);
-        } else {
-          // Desktop layout
-          return const PrivacyPolicyAddScreen();
-        }
-      },
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F5DC),
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: Text(
-          'Settings',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.notifications_outlined,
-              color: Colors.black54,
-              size: 20,
-            ),
-          ),
-        ],
-      ),
-      // drawer: Drawer(
-      //   child: const Sidebar(),
-      // ),
-      body: _buildMobileContent(),
-    );
-  }
-
-  Widget _buildTabletLayout(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC),
-      body: Row(
-        children: [
-          // // Sidebar for tablet
-          // Container(
-          //   width: 240,
-          //   child: const Sidebar(),
-          // ),
-
-          // Main content
-          Expanded(
-            child: _buildTabletContent(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileContent() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Mobile header
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Privacy Policy',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2D2D2D),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Edit Policy',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              _buildMobilePolicyContent(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabletContent() {
-    return Container(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTabletHeader(),
-          const SizedBox(height: 24),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Privacy Policy',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2D2D2D),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Edit Policy',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _buildMobilePolicyContent(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTabletHeader() {
     return Row(
       children: [
-        Text(
+        const Text(
           'Settings',
           style: TextStyle(
             fontSize: 24,
@@ -601,7 +289,7 @@ class ResponsivePrivacyPolicyAddScreen extends StatelessWidget {
             color: Colors.white.withOpacity(0.7),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
+          child: const Icon(
             Icons.notifications_outlined,
             color: Colors.black54,
             size: 20,
@@ -611,85 +299,181 @@ class ResponsivePrivacyPolicyAddScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMobilePolicyContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Effective Date: [Insert Date]',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.black54,
-            height: 1.5,
+  Widget _buildPolicyEditor({required bool fillAvailable, required bool isCompact}) {
+    return Obx(() {
+      final policy = _controller.policy.value;
+      final isLoading = _controller.isLoading.value;
+      final isSaving = _controller.isSaving.value;
+      final error = _controller.errorMessage.value;
+
+      final titleStyle = TextStyle(
+        fontSize: isCompact ? 20 : 24,
+        fontWeight: FontWeight.w700,
+        color: Colors.black87,
+      );
+
+      final subtitleStyle = TextStyle(
+        fontSize: isCompact ? 13 : 14,
+        color: Colors.black54,
+      );
+
+      final textField = TextField(
+        controller: _textController,
+        expands: fillAvailable,
+        minLines: fillAvailable ? null : (isCompact ? 10 : 14),
+        maxLines: fillAvailable ? null : 24,
+        keyboardType: TextInputType.multiline,
+        textAlignVertical: TextAlignVertical.top,
+        style: TextStyle(fontSize: isCompact ? 14 : 15, height: 1.4, color: Colors.black87),
+        decoration: InputDecoration(
+          hintText: 'Write the privacy policy that should be shown inside the app...',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF2D2D2D), width: 1.4),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: isCompact ? 18 : 24,
           ),
         ),
-        Text(
-          'Last Updated: [Insert Date]',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.black54,
-            height: 1.5,
+      );
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isLoading) ...[
+            const LinearProgressIndicator(minHeight: 3),
+            const SizedBox(height: 16),
+          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Privacy Policy', style: titleStyle),
+                    const SizedBox(height: 6),
+                    if (policy?.formattedUpdatedAt != null)
+                      Text('Last updated ${policy!.formattedUpdatedAt}', style: subtitleStyle)
+                    else
+                      Text('No privacy policy published yet', style: subtitleStyle),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  IconButton(
+                    tooltip: 'Refresh',
+                    onPressed: isLoading ? null : () => _controller.loadPrivacyPolicy(),
+                    icon: const Icon(Icons.refresh),
+                  ),
+                  ElevatedButton(
+                    onPressed: (isSaving || _controller.isLoading.value)
+                        ? null
+                        : () => _handleSave(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2D2D2D),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(policy == null ? 'Create Policy' : 'Update Policy'),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Stackle ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.black87,
-            height: 1.6,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          '1. Information We Collect',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'a. Personal Information',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-            height: 1.5,
-          ),
-        ),
-        Text(
-          'We may collect personal details such as:',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.black87,
-            height: 1.6,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ...[
-          'Full name',
-          'Email address',
-          'Phone number',
-          'Organization name',
-          'Designation',
-          'Location'
-        ]
-            .map((item) => Padding(
-                  padding: const EdgeInsets.only(left: 12, bottom: 2),
-                  child: Text(
-                    '• $item',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black87,
-                      height: 1.5,
+          const SizedBox(height: 20),
+          if (error.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          error,
+                          style: const TextStyle(color: Colors.redAccent),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: isLoading ? null : () => _controller.loadPrivacyPolicy(),
+                          child: const Text('Try again'),
+                        ),
+                      ],
                     ),
                   ),
-                ))
-            .toList(),
-      ],
-    );
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+          if (!fillAvailable) ...[
+            if (policy == null)
+              Text(
+                'Start by writing your privacy policy below then tap "Create Policy".',
+                style: subtitleStyle,
+              )
+            else
+              Text(
+                'Update the policy content below and save your changes.',
+                style: subtitleStyle,
+              ),
+            const SizedBox(height: 16),
+          ]
+          else ...[
+            if (policy == null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  'Start by writing your privacy policy below then tap "Create Policy".',
+                  style: subtitleStyle,
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  'Update the policy content below and save your changes.',
+                  style: subtitleStyle,
+                ),
+              ),
+          ],
+          fillAvailable ? Expanded(child: textField) : textField,
+        ],
+      );
+    });
   }
 }

@@ -33,6 +33,67 @@ class UserService {
       throw Exception('Failed to load current user details: $e');
     }
   }
+
+  /// Fetches a paginated list of users for administrative features such as
+  /// notification targeting. Accepts an optional [search] query to filter the
+  /// results server-side when supported by the backend.
+  Future<List<User>> getUsers({
+    required String token,
+    String? search,
+    bool includeInactive = false,
+  }) async {
+    try {
+      final queryParameters = <String, String>{};
+      if (search != null && search.trim().isNotEmpty) {
+        queryParameters['search'] = search.trim();
+      }
+      if (includeInactive) {
+        queryParameters['include_inactive'] = 'true';
+      }
+
+      Uri uri = Uri.parse('$baseUrl/auth/users');
+      if (queryParameters.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParameters);
+      }
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print('UserService: getUsers status: ${response.statusCode}');
+      print('UserService: getUsers body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is List) {
+          return decoded
+              .whereType<Map<String, dynamic>>()
+              .map(User.fromJson)
+              .toList();
+        }
+
+        if (decoded is Map<String, dynamic> && decoded['results'] is List) {
+          return (decoded['results'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map(User.fromJson)
+              .toList();
+        }
+
+        throw Exception('Unexpected response format when listing users.');
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized (401). Token may be invalid or expired.');
+      }
+
+      throw Exception('API Error: ${response.statusCode} - ${response.body}');
+    } catch (e) {
+      print('UserService: getUsers exception caught: $e');
+      throw Exception('Failed to load users: $e');
+    }
+  }
   /// Get user details by user ID
   Future<User> getUserById({required int userId, required String token}) async {
     try {

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:stackle_admin/widgets/side_bar.dart';
+import 'package:get/get.dart';
+import 'package:stackle_admin/controllers/notification_controller.dart';
+import 'package:stackle_admin/view/settings/privacy_policy_add_screen.dart';
+import 'package:stackle_admin/view/settings/widgets/push_notification_modal.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -166,31 +169,38 @@ class SettingsScreen extends StatelessWidget {
       crossAxisSpacing: 20,
       mainAxisSpacing: 20,
       children: [
+        // _buildSettingCard(
+        //   icon: Icons.people_outline,
+        //   title: 'Blocked Users',
+        // ),
+        // _buildSettingCard(
+        //   icon: Icons.chat_bubble_outline,
+        //   title: 'Feedbacks',
+        // ),
         _buildSettingCard(
-          icon: Icons.people_outline,
-          title: 'Blocked Users',
-        ),
-        _buildSettingCard(
-          icon: Icons.chat_bubble_outline,
-          title: 'Feedbacks',
-        ),
-        _buildSettingCard(
+          context: context,
           icon: Icons.shield_outlined,
           title: 'Privacy Policy',
+          page: const PrivacyPolicyAddScreen(),
         ),
         _buildSettingCard(
+          context: context,
           icon: Icons.notifications_outlined,
           title: 'Push notification',
           fullWidth: true,
+          onTap: () => _showPushNotificationModal(context),
         ),
       ],
     );
   }
 
   Widget _buildSettingCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     bool fullWidth = false,
+    VoidCallback? onTap,
+    Widget? page,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -209,7 +219,13 @@ class SettingsScreen extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            // Handle card tap
+            if (onTap != null) {
+              onTap();
+            } else if (page != null) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => page),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -259,5 +275,26 @@ class SettingsScreen extends StatelessWidget {
     if (screenWidth > 1200) return 32;
     if (screenWidth > 768) return 28;
     return 24;
+  }
+
+  void _showPushNotificationModal(BuildContext context) {
+    final notificationController = Get.isRegistered<NotificationController>()
+        ? Get.find<NotificationController>()
+        : Get.put(NotificationController());
+
+    notificationController.clearForm();
+    notificationController.fetchRecipients();
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => PushNotificationModal(
+        controller: notificationController,
+      ),
+    ).then((_) {
+      if (Get.isRegistered<NotificationController>()) {
+        notificationController.clearForm();
+      }
+    });
   }
 }

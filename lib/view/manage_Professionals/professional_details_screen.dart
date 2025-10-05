@@ -10,10 +10,12 @@ import 'package:stackle_admin/core/api_base.dart';
 
 class ProfessionalDetailScreen extends StatefulWidget {
   final Client client;
-  const ProfessionalDetailScreen({Key? key, required this.client}) : super(key: key);
+  const ProfessionalDetailScreen({Key? key, required this.client})
+      : super(key: key);
 
   @override
-  State<ProfessionalDetailScreen> createState() => _ProfessionalDetailScreenState();
+  State<ProfessionalDetailScreen> createState() =>
+      _ProfessionalDetailScreenState();
 }
 
 class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
@@ -203,7 +205,8 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
       }
       try {
-        if (Uri.parse(baseRoot).host == uri.host) return trimmed; // already ours
+        if (Uri.parse(baseRoot).host == uri.host)
+          return trimmed; // already ours
       } catch (_) {}
       return trimmed; // external
     }
@@ -225,8 +228,10 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       backgroundColor: const Color(0xFFF5F5DC),
       body: LayoutBuilder(builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 768;
-        final isTablet = constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
-        return Row(children: [Expanded(child: _buildMainContent(isMobile, isTablet))]);
+        final isTablet =
+            constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
+        return Row(
+            children: [Expanded(child: _buildMainContent(isMobile, isTablet))]);
       }),
     );
   }
@@ -254,25 +259,27 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
             return SingleChildScrollView(
               child: Form(
                 key: _formKey,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  _buildUserInfoSection(),
-                  const SizedBox(height: 32),
-                  _buildClientInfoSection(),
-                  const SizedBox(height: 32),
-                  _buildLocationSection(),
-                  const SizedBox(height: 32),
-                  _buildStatusSection(),
-                  const SizedBox(height: 32),
-                  _buildExperienceSection(),
-                  const SizedBox(height: 32),
-                  _buildEducationSection(),
-                  const SizedBox(height: 32),
-                  _buildCertificatesSection(),
-                  const SizedBox(height: 32),
-                  _buildLanguagesSection(),
-                  const SizedBox(height: 32),
-                  _buildApprovalSection(),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildUserInfoSection(),
+                      const SizedBox(height: 32),
+                      _buildClientInfoSection(),
+                      const SizedBox(height: 32),
+                      _buildLocationSection(),
+                      const SizedBox(height: 32),
+                      _buildStatusSection(),
+                      const SizedBox(height: 32),
+                      _buildExperienceSection(),
+                      const SizedBox(height: 32),
+                      _buildEducationSection(),
+                      const SizedBox(height: 32),
+                      _buildCertificatesSection(),
+                      const SizedBox(height: 32),
+                      _buildLanguagesSection(),
+                      const SizedBox(height: 32),
+                      _buildApprovalSection(),
+                    ]),
               ),
             );
           }),
@@ -283,38 +290,44 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
 
   Widget _buildHeader(bool isMobile) {
     return Row(children: [
-      if (isMobile)
-        IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
+      if (isMobile) IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
       IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black54),
           onPressed: () => Navigator.pop(context)),
       const SizedBox(width: 16),
       Expanded(
         child: Obx(() {
-          final client = professionalController.currentClient.value ?? widget.client;
-            final imageUrl = client.image ?? '';
-            final resolved = imageUrl.isNotEmpty ? _resolveMediaUrl(imageUrl) : '';
-            final initials = (userController.user.value?.name ?? '').isNotEmpty
-                ? userController.user.value!.name
-                    .split(' ')
-                    .map((s) => s.isNotEmpty ? s[0] : '')
-                    .join()
-                    .toUpperCase()
-                : 'P';
+          final client =
+              professionalController.currentClient.value ?? widget.client;
+          final imageUrl = client.image ?? '';
+          final resolved =
+              imageUrl.isNotEmpty ? _resolveMediaUrl(imageUrl) : '';
+          final initials = (userController.user.value?.name ?? '').isNotEmpty
+              ? userController.user.value!.name
+                  .split(' ')
+                  .map((s) => s.isNotEmpty ? s[0] : '')
+                  .join()
+                  .toUpperCase()
+              : 'P';
           return Row(children: [
             CircleAvatar(
               radius: 36,
               backgroundColor: Colors.blue[50],
-              backgroundImage: resolved.isNotEmpty ? NetworkImage(resolved) : null,
+              backgroundImage:
+                  resolved.isNotEmpty ? NetworkImage(resolved) : null,
               child: resolved.isEmpty
-                  ? Text(initials, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                  ? Text(initials,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold))
                   : null,
             ),
             const SizedBox(width: 12),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Professional ID: ${client.clientId}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+              Text('Professional ID: ${client.clientId}',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey)),
               const SizedBox(height: 4),
-              Text('Joined: ${client.createdAt.year}-${client.createdAt.month.toString().padLeft(2, '0')}-${client.createdAt.day.toString().padLeft(2, '0')}',
+              Text(
+                  'Joined: ${client.createdAt.year}-${client.createdAt.month.toString().padLeft(2, '0')}-${client.createdAt.day.toString().padLeft(2, '0')}',
                   style: const TextStyle(fontSize: 14, color: Colors.grey)),
             ])
           ]);
@@ -342,7 +355,8 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
                 )
               : Row(
                   mainAxisSize: MainAxisSize.min,
@@ -361,14 +375,17 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         final isLoadingStatus = userController.isLoadingBlockStatus.value;
         final blockStatus = userController.userBlockStatus.value;
         final isBlocked = blockStatus?.isBlocked ?? false;
-        final client = professionalController.currentClient.value ?? widget.client;
+        final statusError = userController.blockStatusError.value;
+        final client =
+            professionalController.currentClient.value ?? widget.client;
         final isApproved = client.isAdminApproved;
 
         return PopupMenuButton<String>(
           color: Colors.white,
           tooltip: 'More actions',
           onOpened: () {
-            if (user != null && blockStatus == null && !isLoadingStatus) {
+            if (user != null && !isLoadingStatus &&
+                (blockStatus == null || statusError.isNotEmpty)) {
               userController.fetchUserBlockStatus(user.id);
             }
           },
@@ -395,128 +412,123 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
             final items = <PopupMenuEntry<String>>[];
 
             items.add(PopupMenuItem<String>(
+
               value: 'edit_details',
               enabled: !_isEditing && user != null,
               child: ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.edit, color: !_isEditing && user != null ? Colors.blue : Colors.grey),
+                leading: Icon(Icons.edit,
+                    color: !_isEditing && user != null
+                        ? Colors.blue
+                        : Colors.grey),
                 title: Text(_isEditing ? 'Editing active' : 'Edit Details'),
-                subtitle: _isEditing ? const Text('Finish editing to access actions') : null,
+                subtitle: _isEditing
+                    ? const Text('Finish editing to access actions')
+                    : null,
               ),
             ));
 
             items.add(const PopupMenuDivider());
+                if (!isApproved) {
+                  items.add(const PopupMenuItem<String>(
+                    value: 'approve_professional',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.check_circle, color: Colors.green),
+                      title: Text('Approve Professional'),
+                    ),
+                  ));
+                  items.add(const PopupMenuDivider());
+                }
 
-            if (isApproved) {
-              items.add(const PopupMenuItem<String>(
-                value: 'reject_professional',
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.block, color: Colors.red),
-                  title: Text('Reject Professional'),
-                ),
-              ));
-            } else {
-              items.add(const PopupMenuItem<String>(
-                value: 'approve_professional',
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.check_circle, color: Colors.green),
-                  title: Text('Approve Professional'),
-                ),
-              ));
-              items.add(const PopupMenuItem<String>(
-                value: 'reject_professional',
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.block, color: Colors.red),
-                  title: Text('Reject Professional'),
-                ),
-              ));
-            }
-
-            items.add(const PopupMenuDivider());
-
-            if (user == null) {
-              items.add(const PopupMenuItem<String>(
-                value: 'no_user',
-                enabled: false,
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.info_outline, color: Colors.grey),
-                  title: Text('User data unavailable'),
-                ),
-              ));
-              return items;
-            }
-
-            if (isLoadingStatus) {
-              items.add(PopupMenuItem<String>(
-                value: 'loading',
-                enabled: false,
-                child: SizedBox(
-                  height: 28,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 8),
-                      Text('Checking status...'),
-                    ],
+                items.add(PopupMenuItem<String>(
+                  value: 'reject_professional',
+                  enabled: !_isEditing,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.block, color: Colors.red),
+                    title: const Text('Reject Professional'),
                   ),
-                ),
-              ));
-              return items;
-            }
+                ));
 
-            final statusError = userController.blockStatusError.value;
-            if (blockStatus == null) {
-              items.add(PopupMenuItem<String>(
-                value: 'status_unavailable',
-                enabled: false,
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.info_outline, color: statusError.isEmpty ? Colors.grey : Colors.redAccent),
-                  title: Text(statusError.isEmpty ? 'Block status unavailable' : 'Failed to load block status'),
-                  subtitle: statusError.isEmpty
-                      ? const Text('Open again in a moment to refresh')
-                      : Text(statusError, maxLines: 2, overflow: TextOverflow.ellipsis),
-                ),
-              ));
-              return items;
-            }
+                items.add(const PopupMenuDivider());
 
-            if (isBlocked) {
-              items.add(PopupMenuItem<String>(
-                value: 'unblock_user',
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.lock_open, color: Colors.green),
-                  title: const Text('Unblock User'),
-                ),
-              ));
-            } else {
-              items.add(PopupMenuItem<String>(
-                value: 'block_user',
-                child: ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.person_off, color: Colors.red),
-                  title: const Text('Block User'),
-                ),
-              ));
-            }
+                if (user == null) {
+                  items.add(const PopupMenuItem<String>(
+                    value: 'no_user',
+                    enabled: false,
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.info_outline, color: Colors.grey),
+                      title: Text('User data unavailable'),
+                    ),
+                  ));
+                  return items;
+                }
+
+                if (isLoadingStatus) {
+                  items.add(PopupMenuItem<String>(
+                    value: 'loading',
+                    enabled: false,
+                    child: SizedBox(
+                      height: 28,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text('Checking status...'),
+                        ],
+                      ),
+                    ),
+                  ));
+                  return items;
+                }
+
+                if (blockStatus == null) {
+                  items.add(PopupMenuItem<String>(
+                    value: 'status_unavailable',
+                    enabled: false,
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.info_outline,
+                          color: statusError.isEmpty
+                              ? Colors.grey
+                              : Colors.redAccent),
+                      title: Text(statusError.isEmpty
+                          ? 'Block status unavailable'
+                          : 'Failed to load block status'),
+                      subtitle: statusError.isEmpty
+                          ? const Text('Open again in a moment to refresh')
+                          : Text(statusError,
+                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ),
+                  ));
+                  return items;
+                }
+
+                items.add(PopupMenuItem<String>(
+                  value: isBlocked ? 'unblock_user' : 'block_user',
+                  enabled: !_isEditing,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      isBlocked ? Icons.lock_open : Icons.person_off,
+                      color: isBlocked ? Colors.green : Colors.red,
+                    ),
+                    title: Text(isBlocked ? 'Unblock User' : 'Block User'),
+                  ),
+                ));
 
             return items;
           },
@@ -546,7 +558,8 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         }
         final User? user = userController.user.value;
         if (user == null) {
-          return const Text('No user data available', style: TextStyle(color: Colors.grey));
+          return const Text('No user data available',
+              style: TextStyle(color: Colors.grey));
         }
         if (_isEditing) {
           return Column(children: [
@@ -554,7 +567,9 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               controller: _nameController,
               label: 'Name',
               icon: Icons.person_outline,
-              validator: (value) => value == null || value.trim().isEmpty ? 'Name is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Name is required'
+                  : null,
             ),
             _editableTextField(
               controller: _emailController,
@@ -573,7 +588,9 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               label: 'Phone',
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
-              validator: (value) => value == null || value.trim().isEmpty ? 'Phone number is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Phone number is required'
+                  : null,
             ),
             _infoRow('Role', user.role, Icons.admin_panel_settings_outlined),
             _infoRow('User ID', user.id.toString(), Icons.badge_outlined),
@@ -596,7 +613,8 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       titleColor: Colors.green[600]!,
       title: 'Professional Information',
       child: Obx(() {
-        final client = professionalController.currentClient.value ?? widget.client;
+        final client =
+            professionalController.currentClient.value ?? widget.client;
         return Column(children: [
           _infoRow('Client ID', client.clientId.toString(), Icons.tag),
           if (_isEditing)
@@ -604,12 +622,20 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               controller: _preferredJobController,
               label: 'Preferred Job',
               icon: Icons.work,
-              validator: (value) => value == null || value.trim().isEmpty ? 'Preferred job is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Preferred job is required'
+                  : null,
             )
           else
-            _infoRow('Preferred Job', client.preferredJob ?? 'Not specified', Icons.work),
+            _infoRow('Preferred Job', client.preferredJob ?? 'Not specified',
+                Icons.work),
           _infoRow('Gender', client.gender ?? 'Not specified', Icons.person),
-          _infoRow('Date of Birth', client.dob != null ? client.dob!.toLocal().toString().split(' ')[0] : 'Not specified', Icons.cake),
+          _infoRow(
+              'Date of Birth',
+              client.dob != null
+                  ? client.dob!.toLocal().toString().split(' ')[0]
+                  : 'Not specified',
+              Icons.cake),
           if (_isEditing)
             _editableTextField(
               controller: _descriptionController,
@@ -620,7 +646,8 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               maxLines: 4,
             )
           else if (client.description != null && client.description!.isNotEmpty)
-            _infoRow('Description', client.description!, Icons.description, multiline: true),
+            _infoRow('Description', client.description!, Icons.description,
+                multiline: true),
         ]);
       }),
     );
@@ -632,14 +659,17 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       titleColor: Colors.orange[600]!,
       title: 'Location Details',
       child: Obx(() {
-        final client = professionalController.currentClient.value ?? widget.client;
+        final client =
+            professionalController.currentClient.value ?? widget.client;
         return Column(children: [
           if (_isEditing)
             _editableTextField(
               controller: _placeController,
               label: 'Place',
               icon: Icons.home,
-              validator: (value) => value == null || value.trim().isEmpty ? 'Place is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Place is required'
+                  : null,
             )
           else
             _infoRow('Place', client.place ?? 'Not specified', Icons.home),
@@ -648,16 +678,21 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               controller: _districtController,
               label: 'District',
               icon: Icons.location_city,
-              validator: (value) => value == null || value.trim().isEmpty ? 'District is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'District is required'
+                  : null,
             )
           else
-            _infoRow('District', client.district ?? 'Not specified', Icons.location_city),
+            _infoRow('District', client.district ?? 'Not specified',
+                Icons.location_city),
           if (_isEditing)
             _editableTextField(
               controller: _stateController,
               label: 'State',
               icon: Icons.map,
-              validator: (value) => value == null || value.trim().isEmpty ? 'State is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'State is required'
+                  : null,
             )
           else
             _infoRow('State', client.state ?? 'Not specified', Icons.map),
@@ -667,12 +702,16 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               label: 'Pincode',
               icon: Icons.local_post_office,
               keyboardType: TextInputType.number,
-              validator: (value) => value == null || value.trim().isEmpty ? 'Pincode is required' : null,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Pincode is required'
+                  : null,
             )
           else
-            _infoRow('Pincode', client.pincode ?? 'Not specified', Icons.local_post_office),
+            _infoRow('Pincode', client.pincode ?? 'Not specified',
+                Icons.local_post_office),
           if (client.latitude != null && client.longitude != null)
-            _infoRow('Coordinates', '${client.latitude}, ${client.longitude}', Icons.gps_fixed),
+            _infoRow('Coordinates', '${client.latitude}, ${client.longitude}',
+                Icons.gps_fixed),
         ]);
       }),
     );
@@ -684,12 +723,16 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       titleColor: Colors.purple[600]!,
       title: 'Status Information',
       child: Obx(() {
-        final client = professionalController.currentClient.value ?? widget.client;
+        final client =
+            professionalController.currentClient.value ?? widget.client;
         return Column(children: [
-          _statusRow('Admin Approved', client.isAdminApproved, Icons.admin_panel_settings),
+          _statusRow('Admin Approved', client.isAdminApproved,
+              Icons.admin_panel_settings),
           _statusRow('KYC Verified', client.isKycVerified, Icons.verified),
-          _infoRow('Created Date', client.formattedCreatedDate, Icons.calendar_today),
-          _infoRow('Updated Date', client.updatedAt.toLocal().toString(), Icons.update),
+          _infoRow('Created Date', client.formattedCreatedDate,
+              Icons.calendar_today),
+          _infoRow('Updated Date', client.updatedAt.toLocal().toString(),
+              Icons.update),
         ]);
       }),
     );
@@ -697,12 +740,21 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
 
   Widget _buildExperienceSection() {
     return Obx(() {
-      final client = professionalController.currentClient.value ?? widget.client;
+      final client =
+          professionalController.currentClient.value ?? widget.client;
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const Text('Experience',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87)),
         const SizedBox(height: 16),
         if (client.experiences.isEmpty)
-          const Text('No experience information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+          const Text('No experience information provided.',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic))
         else
           Wrap(
             spacing: 16,
@@ -722,38 +774,55 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     });
   }
 
-  Widget _experienceCard(String title, String company, String duration, String location,
+  Widget _experienceCard(
+      String title, String company, String duration, String location,
       [String description = '', String certificateUrl = '']) {
     return Container(
       width: 280,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(8)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(company, style: const TextStyle(fontSize: 14, color: Colors.grey)),
         const SizedBox(height: 4),
-        Text('Duration: $duration', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+        Text('Duration: $duration',
+            style: const TextStyle(fontSize: 13, color: Colors.grey)),
         const SizedBox(height: 8),
         Row(children: [
           const Icon(Icons.location_on, size: 14, color: Colors.orange),
           const SizedBox(width: 4),
-          Expanded(child: Text(location.isNotEmpty ? location : 'Location not specified', style: const TextStyle(fontSize: 12, color: Colors.grey)))
+          Expanded(
+              child: Text(
+                  location.isNotEmpty ? location : 'Location not specified',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey)))
         ]),
         if (description.isNotEmpty) ...[
           const SizedBox(height: 8),
-          const Text('Description:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          const Text('Description:',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text(description, style: const TextStyle(fontSize: 12, color: Colors.grey, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
+          Text(description,
+              style: const TextStyle(
+                  fontSize: 12, color: Colors.grey, height: 1.3),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
           if (certificateUrl.isNotEmpty)
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
-                onPressed: () => _viewDocument('Experience Document', _resolveMediaUrl(certificateUrl)),
+                onPressed: () => _viewDocument(
+                    'Experience Document', _resolveMediaUrl(certificateUrl)),
                 icon: const Icon(Icons.visibility, size: 14),
                 label: const Text('View', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6)),
+                style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6)),
               ),
             ),
         ]
@@ -763,12 +832,21 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
 
   Widget _buildEducationSection() {
     return Obx(() {
-      final client = professionalController.currentClient.value ?? widget.client;
+      final client =
+          professionalController.currentClient.value ?? widget.client;
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Education', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const Text('Education',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87)),
         const SizedBox(height: 16),
         if (client.education.isEmpty)
-          const Text('No education information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+          const Text('No education information provided.',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic))
         else
           Wrap(
             spacing: 16,
@@ -777,7 +855,9 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
                 .map((edu) => _educationCard(
                       edu.degree ?? 'Degree Not Specified',
                       edu.institution ?? 'Institution Not Specified',
-                      (edu.startDate != null && edu.endDate != null) ? '${edu.startDate} - ${edu.endDate}' : 'Duration Not Specified',
+                      (edu.startDate != null && edu.endDate != null)
+                          ? '${edu.startDate} - ${edu.endDate}'
+                          : 'Duration Not Specified',
                       client.location,
                       edu.fieldOfStudy,
                       edu.grade,
@@ -789,38 +869,57 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     });
   }
 
-  Widget _educationCard(String degree, String university, String duration, String location,
-    [String? fieldOfStudy, String? grade, String certificateUrl = '']) {
+  Widget _educationCard(
+      String degree, String university, String duration, String location,
+      [String? fieldOfStudy, String? grade, String certificateUrl = '']) {
     return Container(
       width: 200,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(8)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(degree, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(degree,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Text(university, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(university,
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
         if (fieldOfStudy != null && fieldOfStudy.isNotEmpty) ...[
           const SizedBox(height: 4),
-          Text('Field: $fieldOfStudy', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text('Field: $fieldOfStudy',
+              style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(child: Text(duration, style: const TextStyle(fontSize: 10, color: Colors.grey))),
+          Expanded(
+              child: Text(duration,
+                  style: const TextStyle(fontSize: 10, color: Colors.grey))),
           if (certificateUrl.isNotEmpty)
             ElevatedButton.icon(
-              onPressed: () => _viewDocument('Education Document', _resolveMediaUrl(certificateUrl)),
+              onPressed: () => _viewDocument(
+                  'Education Document', _resolveMediaUrl(certificateUrl)),
               icon: const Icon(Icons.visibility, size: 14),
               label: const Text('View', style: TextStyle(fontSize: 12)),
-              style: ElevatedButton.styleFrom(elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6)),
+              style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6)),
             ),
           if (grade != null && grade.isNotEmpty)
-            Text('Grade: $grade', style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500)),
+            Text('Grade: $grade',
+                style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500)),
         ]),
         const SizedBox(height: 8),
         Row(children: [
           const Icon(Icons.location_on, size: 12, color: Colors.orange),
           const SizedBox(width: 4),
-          Expanded(child: Text(location.isNotEmpty ? location : 'Location not specified', style: const TextStyle(fontSize: 10, color: Colors.grey))),
+          Expanded(
+              child: Text(
+                  location.isNotEmpty ? location : 'Location not specified',
+                  style: const TextStyle(fontSize: 10, color: Colors.grey))),
         ]),
       ]),
     );
@@ -828,12 +927,21 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
 
   Widget _buildCertificatesSection() {
     return Obx(() {
-      final client = professionalController.currentClient.value ?? widget.client;
+      final client =
+          professionalController.currentClient.value ?? widget.client;
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Certificates', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const Text('Certificates',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87)),
         const SizedBox(height: 16),
         if (client.certificates.isEmpty)
-          const Text('No certificates information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+          const Text('No certificates information provided.',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic))
         else
           ListView.builder(
             shrinkWrap: true,
@@ -842,60 +950,94 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
             itemBuilder: (_, i) {
               final cert = client.certificates[i];
               return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 1))
-              ]),
-              child: Row(children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(color: Colors.orange[100], borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.verified_user, color: Colors.orange, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(cert.name ?? 'Certificate Name Not Specified', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  if (cert.issuer != null && cert.issuer!.isNotEmpty)
-                    Text('Issued by: ${cert.issuer}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  if (cert.issueDate != null && cert.issueDate!.isNotEmpty)
-                    Text('Issue Date: ${cert.issueDate}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ])),
-                if (cert.certificateUrl != null && cert.certificateUrl!.isNotEmpty)
-                  IconButton(
-                    onPressed: () => _viewDocument(cert.name ?? 'Certificate', cert.certificateUrl!),
-                    icon: const Icon(Icons.visibility, color: Colors.blue, size: 20),
-                  )
-              ]),
-            );
-          },
-        )
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1))
+                    ]),
+                child: Row(children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        color: Colors.orange[100],
+                        borderRadius: BorderRadius.circular(8)),
+                    child: const Icon(Icons.verified_user,
+                        color: Colors.orange, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text(cert.name ?? 'Certificate Name Not Specified',
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w600)),
+                        if (cert.issuer != null && cert.issuer!.isNotEmpty)
+                          Text('Issued by: ${cert.issuer}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey)),
+                        if (cert.issueDate != null &&
+                            cert.issueDate!.isNotEmpty)
+                          Text('Issue Date: ${cert.issueDate}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey)),
+                      ])),
+                  if (cert.certificateUrl != null &&
+                      cert.certificateUrl!.isNotEmpty)
+                    IconButton(
+                      onPressed: () => _viewDocument(
+                          cert.name ?? 'Certificate', cert.certificateUrl!),
+                      icon: const Icon(Icons.visibility,
+                          color: Colors.blue, size: 20),
+                    )
+                ]),
+              );
+            },
+          )
       ]);
     });
   }
 
   Widget _buildLanguagesSection() {
     return Obx(() {
-      final client = professionalController.currentClient.value ?? widget.client;
+      final client =
+          professionalController.currentClient.value ?? widget.client;
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Languages', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const Text('Languages',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87)),
         const SizedBox(height: 16),
         if (client.languages.isEmpty)
-          const Text('No language information provided.', style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic))
+          const Text('No language information provided.',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic))
         else
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: client.languages
                 .map((lang) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.blue[50],
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.blue[200]!),
                       ),
-                      child: Text(lang.language ?? 'Unknown Language', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      child: Text(lang.language ?? 'Unknown Language',
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600)),
                     ))
                 .toList(),
           )
@@ -905,46 +1047,91 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
 
   Widget _buildApprovalSection() {
     return Obx(() {
-      final client = professionalController.currentClient.value ?? widget.client;
+      final client =
+          professionalController.currentClient.value ?? widget.client;
       if (client.isAdminApproved) {
         return Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.green[200]!)),
+          decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green[200]!)),
           child: Row(children: [
             Icon(Icons.check_circle, color: Colors.green[600], size: 28),
             const SizedBox(width: 16),
             const Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Professional Approved', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                SizedBox(height: 4),
-                Text('This professional has been approved and can receive job offers.', style: TextStyle(fontSize: 14, color: Colors.grey)),
-              ]),
-            )
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Professional Approved',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
+                    SizedBox(height: 4),
+                    Text(
+                        'This professional has been approved and can receive job offers.',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  ]),
+            ),
+            InkWell(
+              onTap: _handleRejection,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.06,
+                height: 40,
+                decoration: BoxDecoration(
+                    color: Colors.red[200],
+                    border: Border.all(color: Colors.red),
+                    borderRadius: BorderRadius.circular(8)),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Center(
+                  child: Text('Reject'),
+                ),
+              ),
+            ),
           ]),
         );
       }
       return Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[300]!)),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Admin Review', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Admin Review',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('Review all the information above and decide whether to approve or reject this professional.', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          const Text(
+              'Review all the information above and decide whether to approve or reject this professional.',
+              style: TextStyle(fontSize: 14, color: Colors.grey)),
           const SizedBox(height: 20),
           Row(children: [
             Expanded(
               child: OutlinedButton(
                 onPressed: _handleRejection,
-                style: OutlinedButton.styleFrom(backgroundColor: Colors.white, side: const BorderSide(color: Colors.red), padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: const Text('Reject', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 16)),
+                child: const Text('Reject',
+                    style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600)),
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: ElevatedButton(
                 onPressed: _handleApproval,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.green, side: const BorderSide(color: Colors.green), padding: const EdgeInsets.symmetric(vertical: 16), elevation: 0),
-                child: const Text('Approve', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.green,
+                    side: const BorderSide(color: Colors.green),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0),
+                child: const Text('Approve',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             )
           ])
@@ -959,13 +1146,19 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         context: context,
         builder: (dialogContext) => AlertDialog(
               title: const Text('Approve Professional'),
-              content: Text('Approve this professional?\n\nClient ID: ${widget.client.clientId}'),
+              content: Text(
+                  'Approve this professional?\n\nClient ID: ${widget.client.clientId}'),
               actions: [
                 TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+                    child: const Text('Cancel',
+                        style: TextStyle(color: Colors.grey))),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.green, side: const BorderSide(color: Colors.green), elevation: 0),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green,
+                        side: const BorderSide(color: Colors.green),
+                        elevation: 0),
                     onPressed: () {
                       Navigator.of(dialogContext).pop();
                       _approveClient();
@@ -980,13 +1173,19 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         context: context,
         builder: (dialogContext) => AlertDialog(
               title: const Text('Reject Professional'),
-              content: Text('Reject this professional?\n\nClient ID: ${widget.client.clientId}'),
+              content: Text(
+                  'Reject this professional?\n\nClient ID: ${widget.client.clientId}'),
               actions: [
                 TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+                    child: const Text('Cancel',
+                        style: TextStyle(color: Colors.grey))),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), elevation: 0),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        elevation: 0),
                     onPressed: () {
                       Navigator.of(dialogContext).pop();
                       _rejectClient();
@@ -997,21 +1196,32 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   }
 
   Future<void> _approveClient() async {
-    final success = await Get.find<ProfessionalController>().approveClient(widget.client.clientId);
+    final success = await Get.find<ProfessionalController>()
+        .approveClient(widget.client.clientId);
     if (!mounted || !success) return;
-    Get.snackbar('Success', 'Professional approved successfully', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green[100], colorText: Colors.green[800]);
+    Get.snackbar('Success', 'Professional approved successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[800]);
   }
 
   Future<void> _rejectClient() async {
-    final success = await Get.find<ProfessionalController>().rejectClient(widget.client.clientId);
+    final success = await Get.find<ProfessionalController>()
+        .rejectClient(widget.client.clientId);
     if (!mounted || !success) return;
-    Get.snackbar('Success', 'Professional rejected', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red[100], colorText: Colors.red[800]);
+    Get.snackbar('Success', 'Professional rejected',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800]);
   }
 
   void _handleBlockUser() {
     final user = userController.user.value;
     if (user == null) {
-      Get.snackbar('Error', 'User not loaded yet', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red[100], colorText: Colors.red[800]);
+      Get.snackbar('Error', 'User not loaded yet',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800]);
       return;
     }
     showDialog(
@@ -1022,9 +1232,14 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+                    child: const Text('Cancel',
+                        style: TextStyle(color: Colors.grey))),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), elevation: 0),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        elevation: 0),
                     onPressed: () async {
                       Navigator.of(dialogContext).pop();
                       await userController.blockUser(user.id);
@@ -1037,7 +1252,10 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   void _handleUnblockUser() {
     final user = userController.user.value;
     if (user == null) {
-      Get.snackbar('Error', 'User not loaded yet', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red[100], colorText: Colors.red[800]);
+      Get.snackbar('Error', 'User not loaded yet',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800]);
       return;
     }
     showDialog(
@@ -1048,9 +1266,14 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+                    child: const Text('Cancel',
+                        style: TextStyle(color: Colors.grey))),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.green, side: const BorderSide(color: Colors.green), elevation: 0),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green,
+                        side: const BorderSide(color: Colors.green),
+                        elevation: 0),
                     onPressed: () async {
                       Navigator.of(dialogContext).pop();
                       await userController.unblockUser(user.id);
@@ -1061,15 +1284,30 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   }
 
   // UI helpers ----------------------------------------------------------------
-  Widget _cardWrapper({required IconData titleIcon, required Color titleColor, required String title, required Widget child}) {
+  Widget _cardWrapper(
+      {required IconData titleIcon,
+      required Color titleColor,
+      required String title,
+      required Widget child}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 0),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [
-        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))
-      ]),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2))
+          ]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(titleIcon, color: titleColor, size: 24), const SizedBox(width: 12), Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))]),
+        Row(children: [
+          Icon(titleIcon, color: titleColor, size: 24),
+          const SizedBox(width: 12),
+          Text(title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+        ]),
         const SizedBox(height: 20),
         child
       ]),
@@ -1086,21 +1324,26 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     int maxLines = 1,
   }) {
     final effectiveMinLines = minLines < 1 ? 1 : minLines;
-    final effectiveMaxLines = maxLines < effectiveMinLines ? effectiveMinLines : maxLines;
+    final effectiveMaxLines =
+        maxLines < effectiveMinLines ? effectiveMinLines : maxLines;
     final isMultiline = effectiveMaxLines > 1;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+          color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
       child: Row(
-        crossAxisAlignment: isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment:
+            isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           Icon(icon, size: 18, color: Colors.grey[600]),
           const SizedBox(width: 12),
           SizedBox(
             width: 120,
-            child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            child: Text(label,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1124,20 +1367,33 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     );
   }
 
-  Widget _infoRow(String label, String value, IconData icon, {bool multiline = false}) {
+  Widget _infoRow(String label, String value, IconData icon,
+      {bool multiline = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
-      child: Row(crossAxisAlignment: multiline ? CrossAxisAlignment.start : CrossAxisAlignment.center, children: [
-        Icon(icon, size: 18, color: Colors.grey[600]),
-        const SizedBox(width: 12),
-        SizedBox(width: 120, child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(value, style: TextStyle(fontSize: 14, color: Colors.grey[700]), maxLines: multiline ? null : 1, overflow: multiline ? TextOverflow.visible : TextOverflow.ellipsis),
-        )
-      ]),
+      decoration: BoxDecoration(
+          color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
+      child: Row(
+          crossAxisAlignment:
+              multiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: Colors.grey[600]),
+            const SizedBox(width: 12),
+            SizedBox(
+                width: 120,
+                child: Text(label,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500))),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(value,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  maxLines: multiline ? null : 1,
+                  overflow:
+                      multiline ? TextOverflow.visible : TextOverflow.ellipsis),
+            )
+          ]),
     );
   }
 
@@ -1145,17 +1401,31 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: status ? Colors.green[50] : Colors.red[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: status ? Colors.green[200]! : Colors.red[200]!)),
+      decoration: BoxDecoration(
+          color: status ? Colors.green[50] : Colors.red[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+              color: status ? Colors.green[200]! : Colors.red[200]!)),
       child: Row(children: [
-        Icon(icon, size: 18, color: status ? Colors.green[600] : Colors.red[600]),
+        Icon(icon,
+            size: 18, color: status ? Colors.green[600] : Colors.red[600]),
         const SizedBox(width: 12),
-        SizedBox(width: 120, child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+        SizedBox(
+            width: 120,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w500))),
         const SizedBox(width: 12),
         Expanded(
           child: Row(children: [
-            Icon(status ? Icons.check_circle : Icons.cancel, size: 16, color: status ? Colors.green[600] : Colors.red[600]),
+            Icon(status ? Icons.check_circle : Icons.cancel,
+                size: 16, color: status ? Colors.green[600] : Colors.red[600]),
             const SizedBox(width: 8),
-            Text(status ? 'Yes' : 'No', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: status ? Colors.green[600] : Colors.red[600]))
+            Text(status ? 'Yes' : 'No',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: status ? Colors.green[600] : Colors.red[600]))
           ]),
         )
       ]),
@@ -1165,12 +1435,16 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   Widget _errorBox(String title, String message, {VoidCallback? onRetry}) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.red[200]!)),
+      decoration: BoxDecoration(
+          color: Colors.red[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.red[200]!)),
       child: Row(children: [
         Icon(Icons.error, color: Colors.red[600]),
         const SizedBox(width: 12),
         Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
           Text(message, style: const TextStyle(fontSize: 12))
         ])),
@@ -1195,17 +1469,25 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(children: [
                   Row(children: [
-                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const Spacer(),
-                    IconButton(onPressed: () => Navigator.of(dialogContext).pop(), icon: const Icon(Icons.close))
+                    IconButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        icon: const Icon(Icons.close))
                   ]),
                   Row(children: [
                     Expanded(
-                        child: Text(resolved, style: const TextStyle(fontSize: 12, color: Colors.blueGrey), overflow: TextOverflow.ellipsis)),
+                        child: Text(resolved,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.blueGrey),
+                            overflow: TextOverflow.ellipsis)),
                     IconButton(
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: resolved));
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copied')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Link copied')));
                         },
                         icon: const Icon(Icons.copy, size: 18))
                   ]),
@@ -1213,10 +1495,15 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
                   Expanded(
                       child: Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8)),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(resolved, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Center(child: Text('Failed to load image'))),
+                      child: Image.network(resolved,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Center(
+                              child: Text('Failed to load image'))),
                     ),
                   ))
                 ]),

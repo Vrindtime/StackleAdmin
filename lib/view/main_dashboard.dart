@@ -7,6 +7,7 @@ import 'package:stackle_admin/view/manageHR/manage_hr_screen.dart';
 import 'package:stackle_admin/view/manage_Professionals/manage_professional_screen.dart';
 import 'package:stackle_admin/view/requests/request_screen.dart';
 import 'package:stackle_admin/view/settings/blocked_users_screen.dart';
+import 'package:stackle_admin/view/settings/settings_screen.dart';
 import 'package:stackle_admin/widgets/side_bar.dart';
 
 class MainDashboard extends StatefulWidget {
@@ -37,9 +38,9 @@ class _MainDashboardState extends State<MainDashboard> {
         ManageHRScreen(),
         const ManageProfessionalsScreen(),
         const AccountsScreen(),
-        const RequestsScreen(),
+        // const RequestsScreen(),
         const BlockedUsersListScreen(),
-        //const SettingsScreen(),
+        const SettingsScreen(),
       ];
 
   @override
