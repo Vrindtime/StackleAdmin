@@ -46,18 +46,18 @@ void viewPdfInline(String title, String url, BuildContext context) {
                     ),
                   ),
                   const Spacer(),
-                  IconButton(
-                    onPressed: () async {
-                      // If the provided url is an http(s) URL, download & share it; otherwise share the url string
-                      final uri = Uri.tryParse(url);
-                      if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-                        await _downloadAndShare(uri, context);
-                      } else {
-                        await Share.share(url);
-                      }
-                    },
-                    icon: const Icon(Icons.share),
-                  ),
+                  // IconButton(
+                  //   onPressed: () async {
+                  //     // If the provided url is an http(s) URL, download & share it; otherwise share the url string
+                  //     final uri = Uri.tryParse(url);
+                  //     if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+                  //       await _downloadAndShare(uri, context);
+                  //     } else {
+                  //       await Share.share(url);
+                  //     }
+                  //   },
+                  //   icon: const Icon(Icons.share),
+                  // ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
@@ -172,23 +172,6 @@ class _PdfDialogViewerState extends State<PdfDialogViewer> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            Text(
-              widget.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.close),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
         Expanded(
           child: PageView.builder(
             controller: _pageController,

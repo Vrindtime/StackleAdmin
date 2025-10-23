@@ -2,14 +2,32 @@ class PushNotificationRequest {
   final String title;
   final String message;
   final bool broadcastToAll;
-  final List<int> recipientIds;
+  final List<dynamic> recipientIds;
+  final bool? liked;
 
   const PushNotificationRequest({
     required this.title,
     required this.message,
     this.broadcastToAll = false,
     this.recipientIds = const [],
+    this.liked,
   });
+
+  List<int> get normalizedRecipientIds {
+    final result = <int>[];
+    for (final raw in recipientIds) {
+      if (raw == null) continue;
+      if (raw is int) {
+        result.add(raw);
+        continue;
+      }
+      final parsed = int.tryParse(raw.toString());
+      if (parsed != null) {
+        result.add(parsed);
+      }
+    }
+    return result;
+  }
 
   Map<String, dynamic> toJson() {
     final payload = <String, dynamic>{
@@ -19,7 +37,11 @@ class PushNotificationRequest {
     };
 
     if (!broadcastToAll) {
-      payload['user_ids'] = recipientIds;
+      payload['user_ids'] = normalizedRecipientIds;
+    }
+
+    if (liked != null) {
+      payload['liked'] = liked;
     }
 
     return payload;
@@ -86,15 +108,22 @@ class SendNotificationResult {
   final bool success;
   final String message;
   final PushNotification? notification;
+  final int? created;
+  final int? requestedCount;
+  final List<int> missingUserIds;
 
   const SendNotificationResult({
     required this.success,
     required this.message,
     this.notification,
+    this.created,
+    this.requestedCount,
+    this.missingUserIds = const [],
   });
 
   factory SendNotificationResult.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
+  final missingIds = PushNotification._parseUserIds(json['missing_user_ids']);
     return SendNotificationResult(
       success: json['success'] == true || json['status'] == 'success',
       message: (json['message'] ?? json['detail'] ?? '').toString(),
@@ -103,6 +132,15 @@ class SendNotificationResult {
           : (json.containsKey('notification') && json['notification'] is Map<String, dynamic>
               ? PushNotification.fromJson(json['notification'])
               : null),
+      created: _parseCount(json['created']),
+      requestedCount: _parseCount(json['requested_count'] ?? json['requestedCount']),
+      missingUserIds: missingIds,
     );
+  }
+
+  static int? _parseCount(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
   }
 }

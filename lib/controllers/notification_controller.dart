@@ -145,7 +145,7 @@ class NotificationController extends GetxController {
         title: titleController.text.trim(),
         message: messageController.text.trim(),
         broadcastToAll: sendToAll.value,
-        recipientIds: List<int>.from(selectedRecipientIds),
+        recipientIds: List<dynamic>.from(selectedRecipientIds),
       );
 
       final result = await _notificationService.sendNotification(
@@ -153,9 +153,16 @@ class NotificationController extends GetxController {
         request: request,
       );
 
-      final message = result.message.isNotEmpty
-          ? result.message
-          : 'Notification sent successfully';
+      final created = result.created;
+      final requestedCount = result.requestedCount;
+      final defaultMessage = 'Notification sent successfully';
+      String message = result.message.isNotEmpty ? result.message : defaultMessage;
+
+      if (created != null || requestedCount != null) {
+        final processed = created ?? requestedCount ?? 0;
+        final expected = requestedCount ?? created ?? 0;
+        message = 'Notifications sent: $processed of $expected.';
+      }
 
       successMessage.value = message;
       Get.snackbar(
@@ -166,10 +173,22 @@ class NotificationController extends GetxController {
         colorText: Colors.green[800],
       );
 
+      if (result.missingUserIds.isNotEmpty) {
+        final formatted = result.missingUserIds.join(', ');
+        Get.snackbar(
+          'Warning',
+          'Skipped recipients: $formatted',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange[100],
+          colorText: Colors.orange[800],
+        );
+      }
+
+      await fetchNotifications();
       clearForm();
       return true;
     } catch (e) {
-      final message = e.toString();
+      final message = e is NotificationException ? e.message : e.toString();
       errorMessage.value = message;
       Get.snackbar(
         'Error',

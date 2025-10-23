@@ -27,24 +27,22 @@ class NotificationService {
     required String token,
     required PushNotificationRequest request,
   }) async {
-    final uniqueRecipientIds = request.recipientIds.toSet().toList();
+    final normalizedRecipientIds = request.normalizedRecipientIds.toSet().toList();
 
-    if (request.broadcastToAll) {
-      return _sendBulkNotifications(
-        token: token,
-        request: request,
-        recipientIds: uniqueRecipientIds,
+    if (request.recipientIds.isNotEmpty && normalizedRecipientIds.isEmpty) {
+      throw NotificationException(
+        'Unable to parse selected recipient IDs. Please refresh and try again.',
       );
     }
 
-    if (uniqueRecipientIds.isEmpty) {
+    if (request.broadcastToAll || normalizedRecipientIds.isEmpty) {
       return _sendSelfNotification(token: token, request: request);
     }
 
-    return _sendBulkNotifications(
+    return _sendBulkNotification(
       token: token,
       request: request,
-      recipientIds: uniqueRecipientIds,
+      recipientIds: normalizedRecipientIds,
     );
   }
 
@@ -80,7 +78,7 @@ class NotificationService {
     throw NotificationException(errorMessage, statusCode: response.statusCode);
   }
 
-  Future<SendNotificationResult> _sendBulkNotifications({
+  Future<SendNotificationResult> _sendBulkNotification({
     required String token,
     required PushNotificationRequest request,
     required List<int> recipientIds,
@@ -89,32 +87,116 @@ class NotificationService {
       return _sendSelfNotification(token: token, request: request);
     }
 
-    SendNotificationResult? lastResult;
-    var successCount = 0;
+    final uri = Uri.parse('$baseUrl/notifications/bulk/');
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'user_ids': recipientIds,
+        'title': request.title,
+        'message': request.message,
+        if (request.liked != null) 'liked': request.liked,
+      }),
+    );
 
-    for (final recipientId in recipientIds) {
-      final result = await _postTargetedNotification(
-        token: token,
-        request: request,
-        recipientId: recipientId,
-      );
-      lastResult = result;
-      successCount += result.success ? 1 : 0;
-    }
+    final decodedBody = _safeDecode(response.body);
 
-    final successfulCount = recipientIds.length;
-    if (successfulCount > 1) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (decodedBody is Map<String, dynamic>) {
+        return SendNotificationResult.fromJson(decodedBody);
+      }
       return SendNotificationResult(
         success: true,
-        message: 'Notification sent to $successCount users.',
-        notification: lastResult?.notification,
+        message: 'Notification sent successfully',
+        notification: null,
+        created: recipientIds.length,
+        requestedCount: recipientIds.length,
       );
     }
 
-    return lastResult ?? const SendNotificationResult(
-      success: true,
-      message: 'Notification sent successfully',
-      notification: null,
+    if (_shouldFallbackToTargetedRoute(response.statusCode, decodedBody)) {
+      return _sendTargetedNotifications(
+        token: token,
+        request: request,
+        recipientIds: recipientIds,
+      );
+    }
+
+    final errorMessage = _extractErrorMessage(decodedBody, response.statusCode);
+    throw NotificationException(
+      errorMessage,
+      statusCode: response.statusCode,
+    );
+  }
+
+  bool _shouldFallbackToTargetedRoute(int statusCode, dynamic decodedBody) {
+    if (statusCode != 422) return false;
+    final errors = <Map<String, dynamic>>[];
+
+    if (decodedBody is List) {
+      errors.addAll(decodedBody.whereType<Map<String, dynamic>>());
+    } else if (decodedBody is Map<String, dynamic>) {
+      final detail = decodedBody['detail'];
+      if (detail is List) {
+        errors.addAll(detail.whereType<Map<String, dynamic>>());
+      }
+    }
+
+    for (final item in errors) {
+      final type = item['type']?.toString();
+      final loc = item['loc'];
+      if (type == 'int_parsing' && loc is List && loc.length >= 2) {
+        final locationSegments = loc.map((segment) => segment.toString()).toList();
+        if (locationSegments[0] == 'path' && locationSegments[1] == 'user_id') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  Future<SendNotificationResult> _sendTargetedNotifications({
+    required String token,
+    required PushNotificationRequest request,
+    required List<int> recipientIds,
+  }) async {
+    SendNotificationResult? lastResult;
+    var successCount = 0;
+    final missingIds = <int>[];
+
+    for (final recipientId in recipientIds) {
+      try {
+        final result = await _postTargetedNotification(
+          token: token,
+          request: request,
+          recipientId: recipientId,
+        );
+        lastResult = result;
+        if (result.success) {
+          successCount += 1;
+        } else {
+          missingIds.add(recipientId);
+        }
+      } catch (_) {
+        missingIds.add(recipientId);
+      }
+    }
+
+    final message = successCount == recipientIds.length
+        ? 'Notification sent to all selected users.'
+        : 'Notification sent to $successCount of ${recipientIds.length} users.';
+
+    return SendNotificationResult(
+      success: successCount > 0,
+      message: message,
+      notification: lastResult?.notification,
+      created: successCount,
+      requestedCount: recipientIds.length,
+      missingUserIds: missingIds,
     );
   }
 
@@ -134,6 +216,7 @@ class NotificationService {
       body: jsonEncode({
         'title': request.title,
         'message': request.message,
+        if (request.liked != null) 'liked': request.liked,
       }),
     );
 
@@ -147,6 +230,8 @@ class NotificationService {
         success: true,
         message: 'Notification sent to user $recipientId',
         notification: null,
+        created: 1,
+        requestedCount: 1,
       );
     }
 

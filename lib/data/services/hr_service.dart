@@ -6,7 +6,7 @@ import '../models/job.dart' as job_model;
 import '../../controllers/auth_controller.dart';
 
 class HRService {
-  final String baseUrl = 'https://stackle-djangoapp-t6rn9w-e998d7-31-97-237-244.traefik.me';
+  final String baseUrl = 'https://stackle.vrindtime.com';
   final AuthController authController = Get.find<AuthController>();
 
   bool enableDebugLogging = true; // toggle for verbose logging
@@ -21,7 +21,6 @@ class HRService {
   // Get auth headers
   Map<String, String> _getHeaders() {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Bearer ${authController.accessToken.value}',
     };
   }
@@ -62,6 +61,8 @@ class HRService {
         throw Exception('Authentication required');
       }
       
+      // Log the response body for debugging non-200 responses
+      _log('GET ORGANIZATIONS FAILED -> [${response.statusCode}] ${response.body.isNotEmpty ? response.body : '<empty body>'}');
       throw Exception('Failed to load organizations: ${response.statusCode}');
     } catch (e) {
       print('Error fetching organizations: $e');
