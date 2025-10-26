@@ -5,11 +5,14 @@ import 'package:stackle_admin/controllers/feedback_controller.dart';
 import 'package:stackle_admin/controllers/stats_controller.dart';
 import 'package:stackle_admin/data/models/feedback_model.dart';
 import 'package:stackle_admin/view/settings/notification_screen.dart';
-import 'package:stackle_admin/widgets/side_bar.dart';
+// sidebar not used here
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key, required this.authController});
+  const DashboardScreen({super.key, required this.authController, this.forceDesktop});
   final AuthController authController;
+  // If non-null, force desktop (true) or mobile (false) layout regardless of
+  // inner constraints. When null, layout is decided from local constraints.
+  final bool? forceDesktop;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +24,12 @@ class DashboardScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F1E8),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          bool isMobile = constraints.maxWidth < 768;
-          bool isTablet =
+          final localIsMobile = constraints.maxWidth < 768;
+          final isTablet =
               constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
+
+          // If a parent requested a forced desktop/mobile, honor that.
+          final isMobile = forceDesktop != null ? !forceDesktop! : localIsMobile;
 
           if (isMobile) {
             return _buildMobileLayout(context);
@@ -38,16 +44,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildMobileLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F1E8),
-      appBar: _buildMobileAppBar(context),
-      drawer: Sidebar(
-        authController: authController,
-        isMobile: true,
-        selectedIndex: 0,
-        onItemSelected: (index) {
-          // TODO: Handle sidebar navigation here
-          print("Selected menu index: $index");
-        },
-      ),
+      // appBar: _buildMobileAppBar(context),
       body: _buildMainContent(true),
     );
   }
@@ -75,36 +72,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  PreferredSizeWidget _buildMobileAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: const Color(0xFFF5F1E8),
-      elevation: 0,
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black, size: 24),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-      ),
-      title: const Text(
-        'Dashboard',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon:
-              Icon(Icons.notifications_outlined, color: Colors.black, size: 24),
-          onPressed: () => Navigator.push(context,
-              MaterialPageRoute(builder: (context) => NotificationScreen())),
-        ),
-        const UserProfile(),
-        const SizedBox(width: 16),
-      ],
-    );
-  }
+  // Mobile app bar not used; desktop layout renders its own top bar.
 
   Widget _buildDesktopTopBar(BuildContext context) {
     return Container(
@@ -113,8 +81,8 @@ class DashboardScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Row(
         children: [
-          Icon(Icons.menu, color: Colors.black, size: 24),
-          SizedBox(width: 24),
+          // Icon(Icons.menu, color: Colors.black, size: 24),
+          // SizedBox(width: 24),
           Text(
             'Dashboard',
             style: TextStyle(

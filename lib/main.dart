@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:stackle_admin/controllers/auth_gate.dart';
-import 'package:stackle_admin/view/auth/login_screen.dart';
-import 'package:stackle_admin/view/auth/forgot_password_screen.dart';
-import 'package:stackle_admin/view/main_dashboard.dart';
+import 'package:stackle_admin/core/routing.dart';
 
 void main() async {
   await GetStorage.init();
@@ -22,21 +19,9 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Stackle Admin',
-      home: const AuthGate(),
-      getPages: [
-        GetPage(
-          name: '/login',
-          page: () => const LoginScreen(),
-        ),
-        GetPage(
-          name: '/forgot-password',
-          page: () => const ForgotPasswordScreen(),
-        ),
-        GetPage(
-          name: '/dashboard',
-          page: () => const MainDashboard(),
-        ),
-      ],
+      getPages: AppRoutes.getPages,
+      
+      // usePathUrlStrategy: true
     );
   }
 }

@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
 
 class Sidebar extends StatelessWidget {
   final bool isMobile;
   final int selectedIndex;
-  final Function(int) onItemSelected;
   final AuthController authController;
 
   const Sidebar({
     super.key,
     required this.isMobile,
     required this.selectedIndex,
-    required this.onItemSelected,
     required this.authController,
   });
+
+  // Map menu index to route path
+  static const Map<int, String> indexToRoute = {
+    0: '/dashboard',
+    1: '/dashboard/hr',
+    2: '/dashboard/professionals',
+    3: '/dashboard/accounts',
+    4: '/dashboard/blocked',
+    5: '/dashboard/settings',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +64,12 @@ class Sidebar extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildMenuItem(Icons.dashboard, 'Dashboard', 0),
-                _buildMenuItem(Icons.people_outline, 'Manage HR', 1),
-                _buildMenuItem(Icons.person_outline, 'Manage Professionals', 2),
-                _buildMenuItem(Icons.account_circle_outlined, 'Account', 3),
-                _buildMenuItem(Icons.lock_outline, 'Blocked', 4),
-                _buildMenuItem(Icons.settings, 'Settings', 5),
+                _buildMenuItem(context, Icons.dashboard, 'Dashboard', 0),
+                _buildMenuItem(context, Icons.people_outline, 'Manage HR', 1),
+                _buildMenuItem(context, Icons.person_outline, 'Manage Professionals', 2),
+                _buildMenuItem(context, Icons.account_circle_outlined, 'Account', 3),
+                _buildMenuItem(context, Icons.lock_outline, 'Blocked', 4),
+                _buildMenuItem(context, Icons.settings, 'Settings', 5),
               ],
             ),
           ),
@@ -93,7 +102,7 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, int index) {
+  Widget _buildMenuItem(BuildContext context, IconData icon, String title, int index) {
     bool isActive = selectedIndex == index;
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
@@ -116,7 +125,15 @@ class Sidebar extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         dense: true,
-        onTap: () => onItemSelected(index),
+        onTap: () {
+          // Close drawer if mobile
+          if (isMobile) {
+            Navigator.pop(context);
+          }
+          // Navigate to the route for this menu item
+          final route = indexToRoute[index] ?? '/dashboard';
+          Get.toNamed(route);
+        },
       ),
     );
   }

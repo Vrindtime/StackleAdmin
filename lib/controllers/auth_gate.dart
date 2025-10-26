@@ -152,7 +152,13 @@ class _AuthGateState extends State<AuthGate> {
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && !Get.isDialogOpen!) {
           try {
-            Get.offAllNamed('/dashboard');
+            // Preserve the current dashboard route on reload
+            final currentRoute = Get.currentRoute;
+            String targetRoute = '/dashboard';
+            if (currentRoute.isNotEmpty && currentRoute.startsWith('/dashboard')) {
+              targetRoute = currentRoute;
+            }
+            Get.offAllNamed(targetRoute);
           } catch (e) {
             print('AuthGate: Navigation error: $e');
             // Fallback to direct navigation

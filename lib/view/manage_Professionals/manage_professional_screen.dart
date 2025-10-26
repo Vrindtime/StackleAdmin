@@ -8,6 +8,7 @@ import 'package:stackle_admin/data/models/client.dart';
 import 'package:stackle_admin/data/models/user.dart';
 import 'package:stackle_admin/view/manage_Professionals/professional_details_screen.dart';
 import 'package:stackle_admin/core/api_base.dart';
+import 'dart:math' as math;
 
   String _resolveMediaUrl(String url) {
     if (url.isEmpty) return url;
@@ -60,12 +61,25 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
   // Cache for user data to avoid repeated API calls
   final Map<int, User?> _userCache = {};
 
+  double _computeScale(double width) {
+    const double baseWidth = 1200;
+    double scale = width / baseWidth;
+    const double minScale = 0.7;
+    const double maxScale = 1.5;
+    scale = math.max(minScale, math.min(maxScale, scale));
+    // Apply non-linear easing for smoother scaling
+    scale = math.pow(scale, 0.8) as double;
+    return scale;
+  }
+
   @override
   void initState() {
     super.initState();
     // Initialize controllers
     professionalController = Get.put(ProfessionalController());
-    statsController = Get.find<StatsController>(); // Should already exist from dashboard
+    statsController = Get.isRegistered<StatsController>() 
+        ? Get.find<StatsController>() 
+        : Get.put(StatsController());
     // Use Get.find or Get.put with permanent flag to avoid conflicts
     userController = Get.isRegistered<UserController>() 
         ? Get.find<UserController>() 
@@ -127,6 +141,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
           bool isTablet =
               constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
           bool isDesktop = constraints.maxWidth >= 1024;
+          double scale = _computeScale(constraints.maxWidth);
 
           return Row(
             children: [
@@ -139,7 +154,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
 
               // // Main content
               Expanded(
-                child: _buildMainContent(isMobile, isTablet, isDesktop),
+                child: _buildMainContent(isMobile, isTablet, isDesktop, scale, constraints.maxWidth),
               ),
             ],
           );
@@ -148,86 +163,78 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     );
   }
 
-  Widget _buildMainContent(bool isMobile, bool isTablet, bool isDesktop) {
+  Widget _buildMainContent(bool isMobile, bool isTablet, bool isDesktop, double scale, double maxWidth) {
     return Container(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all((isMobile ? 16 : 24) * scale),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(isMobile),
-          const SizedBox(height: 24),
-          _buildSubHeader(isMobile),
-          const SizedBox(height: 24),
-          _buildFiltersRow(isMobile),
-          const SizedBox(height: 32),
+          _buildHeader(isMobile, scale),
+          SizedBox(height: 24 * scale),
+          _buildSubHeader(isMobile, scale, maxWidth),
+          SizedBox(height: 24 * scale),
+          _buildFiltersRow(isMobile, scale),
+          SizedBox(height: 32 * scale),
           Expanded(
-            child: _buildProfessionalsGrid(isMobile, isTablet),
+            child: _buildProfessionalsGrid(isMobile, isTablet, scale, maxWidth),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(bool isMobile) {
+  Widget _buildHeader(bool isMobile, double scale) {
     return Row(
       children: [
-        if (isMobile)
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              // Handle mobile menu
-            },
-          ),
-        const Icon(Icons.menu, color: Colors.black54),
-        const SizedBox(width: 16),
-        const Text(
+        Text(
           'Manage Professionals',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 28 * scale,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
-        const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: Colors.black54),
-          onPressed: () {},
-        ),
-        const SizedBox(width: 16),
-        Obx(() {
-          final user = authController.currentUser.value;
-          return Row(
-            children: [
-              Text(
-                user?.name ?? 'Loading...',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 12),
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.grey[300],
-                child: user?.name != null 
-                    ? Text(
-                        user!.name.isNotEmpty ? user.name[0].toUpperCase() : 'A',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : const Icon(Icons.person, color: Colors.white),
-              ),
-            ],
-          );
-        }),
+        // const Spacer(),
+        // IconButton(
+        //   icon: Icon(Icons.notifications_outlined, color: Colors.black54, size: 24 * scale),
+        //   onPressed: () {},
+        // ),
+        // SizedBox(width: 16 * scale),
+        // Obx(() {
+        //   final user = authController.currentUser.value;
+        //   return Row(
+        //     children: [
+        //       Text(
+        //         user?.name ?? 'Loading...',
+        //         style: TextStyle(
+        //           fontSize: 16 * scale,
+        //           fontWeight: FontWeight.w500,
+        //           color: Colors.black87,
+        //         ),
+        //       ),
+        //       SizedBox(width: 12 * scale),
+        //       CircleAvatar(
+        //         radius: 20 * scale,
+        //         backgroundColor: Colors.grey[300],
+        //         child: user?.name != null 
+        //             ? Text(
+        //                 user!.name.isNotEmpty ? user.name[0].toUpperCase() : 'A',
+        //                 style: TextStyle(
+        //                   color: Colors.white,
+        //                   fontWeight: FontWeight.bold,
+        //                   fontSize: 14 * scale,
+        //                 ),
+        //               )
+        //             : Icon(Icons.person, color: Colors.white, size: 16 * scale),
+        //       ),
+        //     ],
+        //   );
+        // }),
       ],
     );
   }
 
-  Widget _buildSubHeader(bool isMobile) {
+  Widget _buildSubHeader(bool isMobile, double scale, double width) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -236,8 +243,8 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
           children: [
             Obx(() => Text(
               professionalController.currentFilterText,
-              style: const TextStyle(
-                fontSize: 16,
+              style: TextStyle(
+                fontSize: 16 * scale,
                 color: Colors.black87,
                 fontWeight: FontWeight.w400,
               ),
@@ -246,49 +253,100 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
             Obx(() => Text(
               '${professionalController.displayedClients.length} professionals',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12 * scale,
                 color: Colors.grey[600],
               ),
             )),
           ],
         ),
-        Row(
+        width < 450 ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Filter buttons
-            _buildFilterButton('All', ProfessionalFilter.all),
-            const SizedBox(width: 8),
-            _buildFilterButton('Approved', ProfessionalFilter.approved),
-            const SizedBox(width: 8),
-            _buildFilterButton('Rejected', ProfessionalFilter.rejected),
-            const SizedBox(width: 16),
+            // Filter buttons in a row
+            Wrap(
+              spacing: 8 * scale,
+              runSpacing: 8 * scale,
+              children: [
+                _buildFilterButton('All', ProfessionalFilter.all, scale),
+                _buildFilterButton('Approved', ProfessionalFilter.approved, scale),
+                _buildFilterButton('Rejected', ProfessionalFilter.rejected, scale),
+              ],
+            ),
+            SizedBox(height: 16 * scale),
             // Total professionals display
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 12 * scale),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFF4B8), // Light yellow background
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8 * scale),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Total Professionals',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14 * scale,
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8 * scale),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: 8 * scale, vertical: 4 * scale),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFD700), // Gold background
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12 * scale),
                     ),
                     child: Obx(() => Text(
                       statsController.totals.value.totalJobSeekers.toString(),
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 18 * scale,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    )),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ) : Row(
+          children: [
+            // Filter buttons
+            _buildFilterButton('All', ProfessionalFilter.all, scale),
+            SizedBox(width: 8 * scale),
+            _buildFilterButton('Approved', ProfessionalFilter.approved, scale),
+            SizedBox(width: 8 * scale),
+            _buildFilterButton('Rejected', ProfessionalFilter.rejected, scale),
+            SizedBox(width: 16 * scale),
+            // Total professionals display
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 12 * scale),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF4B8), // Light yellow background
+                borderRadius: BorderRadius.circular(8 * scale),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Total Professionals',
+                    style: TextStyle(
+                      fontSize: 14 * scale,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(width: 8 * scale),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8 * scale, vertical: 4 * scale),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD700), // Gold background
+                      borderRadius: BorderRadius.circular(12 * scale),
+                    ),
+                    child: Obx(() => Text(
+                      statsController.totals.value.totalJobSeekers.toString(),
+                      style: TextStyle(
+                        fontSize: 18 * scale,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
@@ -303,7 +361,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     );
   }
 
-  Widget _buildFilterButton(String text, ProfessionalFilter filter) {
+  Widget _buildFilterButton(String text, ProfessionalFilter filter, double scale) {
     return Obx(() => ElevatedButton(
       onPressed: () => professionalController.applyFilter(filter),
       style: ElevatedButton.styleFrom(
@@ -317,43 +375,43 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
               : Colors.grey[300]!,
           width: professionalController.currentFilter.value == filter ? 2 : 1,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: const Size(0, 36),
+        padding: EdgeInsets.symmetric(horizontal: 12 * scale, vertical: 8 * scale),
+        minimumSize: Size(0, 36 * scale),
         elevation: 0,
       ),
-      child: Text(text, style: const TextStyle(fontSize: 12)),
+      child: Text(text, style: TextStyle(fontSize: 12 * scale)),
     ));
   }
 
-  Widget _buildFiltersRow(bool isMobile) {
+  Widget _buildFiltersRow(bool isMobile, double scale) {
     if (isMobile) {
       return Column(
         children: [
-          _buildSearchBar(),
-          const SizedBox(height: 16),
+          _buildSearchBar(scale),
+          SizedBox(height: 16 * scale),
           Row(
             children: [
               Expanded(child: Obx(() {
                 final options = _sectorOptions();
                 return _buildDropdownFromList(options, professionalController.selectedSector.value, (value) {
                   professionalController.selectedSector.value = value!;
-                });
+                }, scale);
               })),
-              const SizedBox(width: 8),
+              SizedBox(width: 8 * scale),
               Expanded(child: Obx(() {
                 final options = _daysOptions();
                 return _buildDropdownFromList(options, professionalController.selectedDays.value, (value) {
                   professionalController.selectedDays.value = value!;
-                });
+                }, scale);
               })),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * scale),
           Obx(() {
             final options = _locationOptions();
             return _buildDropdownFromList(options, professionalController.selectedLocation.value, (value) {
               professionalController.selectedLocation.value = value!;
-            });
+            }, scale);
           }),
         ],
       );
@@ -361,70 +419,70 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
 
     return Row(
       children: [
-        Expanded(flex: 3, child: _buildSearchBar()),
-        const SizedBox(width: 16),
+        Expanded(flex: 3, child: _buildSearchBar(scale)),
+        SizedBox(width: 16 * scale),
         Expanded(child: Obx(() {
           final options = _sectorOptions();
           return _buildDropdownFromList(options, professionalController.selectedSector.value, (value) {
             professionalController.selectedSector.value = value!;
-          });
+          }, scale);
         })),
-        const SizedBox(width: 12),
+        SizedBox(width: 12 * scale),
         Expanded(child: Obx(() {
           final options = _daysOptions();
           return _buildDropdownFromList(options, professionalController.selectedDays.value, (value) {
             professionalController.selectedDays.value = value!;
-          });
+          }, scale);
         })),
-        const SizedBox(width: 12),
+        SizedBox(width: 12 * scale),
         Expanded(child: Obx(() {
           final options = _locationOptions();
           return _buildDropdownFromList(options, professionalController.selectedLocation.value, (value) {
             professionalController.selectedLocation.value = value!;
-          });
+          }, scale);
         })),
       ],
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(double scale) {
     return Container(
-      height: 48,
+      height: 48 * scale,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8 * scale),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: TextField(
         onChanged: (value) => professionalController.updateSearchQuery(value),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: 'Search professionals...',
-          prefixIcon: Icon(Icons.search, color: Colors.grey),
+          prefixIcon: Icon(Icons.search, color: Colors.grey, size: 24 * scale),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 12 * scale),
         ),
       ),
     );
   }
 
-  Widget _buildDropdownFromList(List<String> options, String value, Function(String?) onChanged) {
+  Widget _buildDropdownFromList(List<String> options, String value, Function(String?) onChanged, double scale) {
     final safeOptions = options.isNotEmpty ? options : ['All'];
     final safeValue = safeOptions.contains(value) ? value : safeOptions.first;
 
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 48 * scale,
+      padding: EdgeInsets.symmetric(horizontal: 12 * scale),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8 * scale),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: safeValue,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-          style: const TextStyle(color: Colors.black87, fontSize: 14),
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 24 * scale),
+          style: TextStyle(color: Colors.black87, fontSize: 14 * scale),
           dropdownColor: Colors.white,
           items: safeOptions.map((String item) {
             return DropdownMenuItem<String>(
@@ -438,14 +496,34 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     );
   }
 
-  Widget _buildProfessionalsGrid(bool isMobile, bool isTablet) {
+  Widget _buildProfessionalsGrid(bool isMobile, bool isTablet, double scale, double width) {
     int crossAxisCount;
-    if (isMobile) {
-      crossAxisCount = 1;
-    } else if (isTablet) {
-      crossAxisCount = 2;
+    if (width < 1000) {
+      crossAxisCount = 1; // mobile
+    } else if (width < 1350) {
+      crossAxisCount = 2; // tablet
+    } else if (width < 1700) {
+      crossAxisCount = 3; // medium desktop
     } else {
-      crossAxisCount = 4;
+      crossAxisCount = 4; // large desktop
+    }
+
+    double childAspectRatio = 1.64;
+    
+    if (width < 350) {
+      childAspectRatio = 1.5;
+    } else if (width < 480) {
+      childAspectRatio = 1.8;
+    } else if (width < 870) {
+      childAspectRatio = 2.5;
+    } else if (width < 1100) {
+      childAspectRatio = 3.3;
+    } else if (width < 1100) {
+      childAspectRatio = 2;
+    } else if (width < 1300) {
+      childAspectRatio = 1.8;
+    } else {
+      childAspectRatio = 1.64;
     }
 
     return Obx(() {
@@ -458,16 +536,16 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-              const SizedBox(height: 16),
+              Icon(Icons.error_outline, size: 48 * scale, color: Colors.grey[400]),
+              SizedBox(height: 16 * scale),
               Text(
                 'Failed to load professionals',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 16 * scale, color: Colors.grey[600]),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16 * scale),
               ElevatedButton(
                 onPressed: () => professionalController.fetchAllClients(),
-                child: const Text('Retry'),
+                child: Text('Retry', style: TextStyle(fontSize: 14 * scale)),
               ),
             ],
           ),
@@ -475,15 +553,15 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
       }
 
       if (professionalController.displayedClients.isEmpty) {
-        return const Center(
+        return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.people_outline, size: 48, color: Colors.grey),
-              SizedBox(height: 16),
+              Icon(Icons.people_outline, size: 48 * scale, color: Colors.grey),
+              SizedBox(height: 16 * scale),
               Text(
                 'No professionals found',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 16 * scale, color: Colors.grey),
               ),
             ],
           ),
@@ -494,21 +572,22 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
         children: [
           // Bulk actions bar
           if (professionalController.isSelectionMode.value)
-            _buildBulkActionsBar(),
+            _buildBulkActionsBar(scale),
           
           // Grid
           Expanded(
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: isMobile ? .4 : 1.5, // Adjusted for user info section
+                crossAxisSpacing: 16 * scale,
+                mainAxisSpacing: 16 * scale,
+                // childAspectRatio: isMobile ? .02 : 1.4, // Adjusted for user info section
+                childAspectRatio: childAspectRatio
               ),
               itemCount: professionalController.displayedClients.length,
               itemBuilder: (context, index) {
                 final client = professionalController.displayedClients[index];
-                return _buildClientCard(client);
+                return _buildClientCard(client, scale);
               },
             ),
           ),
@@ -517,27 +596,27 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     });
   }
 
-  Widget _buildBulkActionsBar() {
+  Widget _buildBulkActionsBar(double scale) {
     return Container(
-      padding: const EdgeInsets.all(26),
-      margin: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(26 * scale),
+      margin: EdgeInsets.only(bottom: 16 * scale),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8 * scale),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: Row(
         children: [
           Obx(() => Text(
             '${professionalController.selectedCount} selected',
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14 * scale),
           )),
           const Spacer(),
           TextButton(
             onPressed: () => professionalController.selectAll(),
-            child: const Text('Select All', style: TextStyle(color: Colors.black87)),
+            child: Text('Select All', style: TextStyle(color: Colors.black87, fontSize: 14 * scale)),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12 * scale),
           ElevatedButton(
             onPressed: professionalController.selectedCount > 0
                 ? () => _showBulkApprovalDialog()
@@ -548,25 +627,25 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
               side: const BorderSide(color: Colors.green),
               elevation: 0,
             ),
-            child: const Text('Bulk Approve'),
+            child: Text('Bulk Approve', style: TextStyle(fontSize: 14 * scale)),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8 * scale),
           TextButton(
             onPressed: () => professionalController.clearSelection(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 14 * scale)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildClientCard(Client client) {
+  Widget _buildClientCard(Client client, double scale) {
     return GestureDetector(
       onLongPress: () => professionalController.toggleSelectionMode(),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12 * scale),
           border: professionalController.isSelected(client.clientId)
               ? Border.all(color: Colors.blue, width: 2)
               : null,
@@ -579,7 +658,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14), // Reduced padding from 16 to 14
+          padding: EdgeInsets.all(14 * scale), // Reduced padding from 16 to 14
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -595,15 +674,15 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
                     )),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: 8 * scale, vertical: 4 * scale),
                     decoration: BoxDecoration(
                       color: client.isAdminApproved ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12 * scale),
                     ),
                     child: Text(
                       client.approvalStatus,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 10 * scale,
                         fontWeight: FontWeight.w600,
                         color: client.isAdminApproved ? Colors.green : Colors.red,
                       ),
@@ -612,43 +691,43 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
                 ],
               ),
               
-              const SizedBox(height: 6), // Reduced spacing
+              SizedBox(height: 6 * scale), // Reduced spacing
               
               // Profile section with user name from API
-              _buildProfileSection(client),
+              _buildProfileSection(client, scale),
               
-              const SizedBox(height: 8), // Reduced spacing
+              SizedBox(height: 8 * scale), // Reduced spacing
               
               // User Details Section
-              _buildUserDetailsSection(client),
+              _buildUserDetailsSection(client, scale),
               
-              const SizedBox(height: 8), // Reduced spacing
+              SizedBox(height: 8 * scale), // Reduced spacing
               
               // Experience and Education count
               Row(
                 children: [
-                  Icon(Icons.work_outline, size: 13, color: Colors.grey[600]),
-                  const SizedBox(width: 3),
+                  Icon(Icons.work_outline, size: 13 * scale, color: Colors.grey[600]),
+                  SizedBox(width: 3 * scale),
                   Text(
                     '${client.experiences.length} exp',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 18 * scale, color: Colors.grey[600]),
                   ),
                   const Spacer(),
-                  Icon(Icons.school_outlined, size: 13, color: Colors.grey[600]),
-                  const SizedBox(width: 3),
+                  Icon(Icons.school_outlined, size: 13 * scale, color: Colors.grey[600]),
+                  SizedBox(width: 3 * scale),
                   Text(
                     '${client.education.length} edu',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 18 * scale, color: Colors.grey[600]),
                   ),
                 ],
               ),
               
-              const SizedBox(height: 12), // Reduced spacing
+              SizedBox(height: 12 * scale), // Reduced spacing
               
               // Action button with increased height
               SizedBox(
                 width: double.infinity,
-                height: 40, // Increased height from default
+                height: 40 * scale, // Increased height from default
                 child: ElevatedButton(
                   onPressed: () => _navigateToDetailScreen(client),
                   style: ElevatedButton.styleFrom(
@@ -659,7 +738,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
                   ),
                   child: Text(
                     client.isAdminApproved ? 'View Details' : 'Review & Approve',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 13 * scale, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -670,30 +749,30 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     );
   }
 
-  Widget _buildUserDetailsSection(Client client) {
+  Widget _buildUserDetailsSection(Client client, double scale) {
     // Check if we already have user data cached
     if (_userCache.containsKey(client.userId)) {
       final user = _userCache[client.userId];
       if (user != null) {
-        return _buildUserInfo(user);
+        return _buildUserInfo(user, scale);
       } else {
-        return _buildUserInfoPlaceholder();
+        return _buildUserInfoPlaceholder(scale);
       }
     }
 
     // Fetch user data if not cached
     _fetchUserData(client.userId);
-    return _buildUserInfoPlaceholder();
+    return _buildUserInfoPlaceholder(scale);
   }
 
-  Widget _buildProfileSection(Client client) {
+  Widget _buildProfileSection(Client client, double scale) {
     // Check if we have user data cached
     final user = _userCache[client.userId];
     
     return Row(
       children: [
         CircleAvatar(
-          radius: 22,
+          radius: 22 * scale,
           backgroundImage: (() {
             final img = client.image ?? '';
             if (img.isEmpty) return null;
@@ -710,19 +789,19 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
                   user?.name.isNotEmpty == true 
                       ? user!.name[0].toUpperCase() 
                       : 'P', // Default to 'P' for Professional
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 * scale),
                 )
               : null,
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10 * scale),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 user?.name ?? 'Professional ${client.clientId}',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 18 * scale,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
@@ -732,7 +811,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
               Text(
                 client.location.isNotEmpty ? client.location : 'N/A',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                   color: Colors.grey[600],
                 ),
                 maxLines: 1,
@@ -745,27 +824,27 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     );
   }
 
-  Widget _buildUserInfo(User user) {
+  Widget _buildUserInfo(User user, double scale) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 6 * scale),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6 * scale),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 2),
+          SizedBox(height: 2 * scale),
           Row(
             children: [
-              Icon(Icons.numbers, size: 12, color: Colors.grey[600]),
-              const SizedBox(width: 4),
+              Icon(Icons.numbers, size: 14 * scale, color: Colors.grey[600]),
+              SizedBox(width: 4 * scale),
               Expanded(
                 child: Text(
                   'ID: ${user.id}',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 14 * scale,
                     color: Colors.grey[700],
                   ),
                   maxLines: 1,
@@ -776,13 +855,13 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
           ),
           Row(
             children: [
-              Icon(Icons.email, size: 12, color: Colors.grey[600]),
-              const SizedBox(width: 4),
+              Icon(Icons.email, size: 14 * scale, color: Colors.grey[600]),
+              SizedBox(width: 4 * scale),
               Expanded(
                 child: Text(
                   user.email.isNotEmpty ? user.email : 'N/A',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 14 * scale,
                     color: Colors.grey[700],
                   ),
                   maxLines: 1,
@@ -791,16 +870,16 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2 * scale),
           Row(
             children: [
-              Icon(Icons.phone, size: 12, color: Colors.grey[600]),
-              const SizedBox(width: 4),
+              Icon(Icons.phone, size: 14 * scale, color: Colors.grey[600]),
+              SizedBox(width: 4 * scale),
               Expanded(
                 child: Text(
                   user.phone.isNotEmpty ? user.phone : 'N/A',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 14 * scale,
                     color: Colors.grey[700],
                   ),
                   maxLines: 1,
@@ -814,12 +893,12 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     );
   }
 
-  Widget _buildUserInfoPlaceholder() {
+  Widget _buildUserInfoPlaceholder(double scale) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 6 * scale),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6 * scale),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
@@ -827,40 +906,40 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.email, size: 12, color: Colors.grey[400]),
-              const SizedBox(width: 4),
+              Icon(Icons.email, size: 12 * scale, color: Colors.grey[400]),
+              SizedBox(width: 4 * scale),
               Text(
                 'Loading...',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10 * scale,
                   color: Colors.grey[500],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2 * scale),
           Row(
             children: [
-              Icon(Icons.phone, size: 12, color: Colors.grey[400]),
-              const SizedBox(width: 4),
+              Icon(Icons.phone, size: 12 * scale, color: Colors.grey[400]),
+              SizedBox(width: 4 * scale),
               Text(
                 'Loading...',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10 * scale,
                   color: Colors.grey[500],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2 * scale),
           Row(
             children: [
-              Icon(Icons.badge, size: 12, color: Colors.grey[400]),
-              const SizedBox(width: 4),
+              Icon(Icons.badge, size: 12 * scale, color: Colors.grey[400]),
+              SizedBox(width: 4 * scale),
               Text(
                 'Loading...',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10 * scale,
                   color: Colors.grey[500],
                 ),
               ),

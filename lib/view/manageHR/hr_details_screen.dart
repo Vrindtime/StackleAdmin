@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/hr_controller.dart';
 import 'package:stackle_admin/controllers/user_controller.dart';
+import 'package:stackle_admin/controllers/auth_controller.dart';
 import 'package:stackle_admin/core/api_base.dart';
 import 'package:stackle_admin/core/pdf_viewer.dart';
 import 'package:stackle_admin/data/models/organization.dart';
 import 'package:stackle_admin/view/manageHR/hr_job_details.dart';
 import 'package:stackle_admin/data/models/user.dart';
+import 'package:stackle_admin/core/routing.dart';
 
 // New dynamic HR details screen (see professional_details_screen for inspiration)
 class HrDetailsScreen extends StatefulWidget {
@@ -19,6 +21,7 @@ class HrDetailsScreen extends StatefulWidget {
 }
 
 class _HrDetailsScreenState extends State<HrDetailsScreen> {
+  late final AuthController authController;
   late HRController hrController;
   late UserController userController;
   bool _editMode = false;
@@ -45,6 +48,12 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    authController = Get.find<AuthController>();
+    ever(authController.currentUser, (user) {
+      if (user == null) {
+        Get.offAllNamed(AppRoutes.login);
+      }
+    });
     hrController = Get.isRegistered<HRController>()
         ? Get.find<HRController>()
         : Get.put(HRController(), permanent: true);
@@ -962,7 +971,7 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               Navigator.of(ctx).pop();
-                              Get.to(() => HRJobDetailScreen(job: job, organizationName: org.name));
+                              Get.toNamed(AppRoutes.hrJobDetails, arguments: {'job': job, 'organizationName': org.name});
                             },
                           );
                         },

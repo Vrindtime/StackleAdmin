@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/blocked_controller.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
+import 'package:stackle_admin/core/routing.dart';
 import 'package:stackle_admin/view/settings/notification_screen.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:http/http.dart' as http;
@@ -71,12 +72,12 @@ class _BlockedUsersListScreenState extends State<BlockedUsersListScreen> {
         // Menu icon and title
         Row(
           children: [
-            Icon(
-              Icons.menu,
-              color: Colors.black87,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
+            // Icon(
+            //   Icons.menu,
+            //   color: Colors.black87,
+            //   size: 24,
+            // ),
+            // const SizedBox(width: 16),
             Text(
               'Blocked Users',
               style: TextStyle(
@@ -100,7 +101,7 @@ class _BlockedUsersListScreenState extends State<BlockedUsersListScreen> {
               ),
               child: InkWell(
                 onTap:(){
-                  Get.to(()=>NotificationScreen());
+                   Get.toNamed(AppRoutes.notificationScreen);
                 },
                 child: Icon(
                   Icons.notifications_outlined,
@@ -575,12 +576,12 @@ class ResponsiveBlockedUsersListScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5F5DC),
         elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        // leading: Builder(
+        //   builder: (context) => IconButton(
+        //     icon: const Icon(Icons.menu, color: Colors.black87),
+        //     onPressed: () => Scaffold.of(context).openDrawer(),
+        //   ),
+        // ),
         title: Text(
           'Blocked Users',
           style: TextStyle(

@@ -4,13 +4,16 @@ import 'package:stackle_admin/view/settings/notification_screen.dart';
 import '../../controllers/hr_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../data/models/organization.dart';
+import '../../core/routing.dart';
 import 'hr_details_screen.dart';
 
 String _resolveMediaUrl(String url) {
   if (url.isEmpty) return url;
   final trimmed = url.trim();
-  if (trimmed.toLowerCase() == 'string') return ''; // placeholder from example payloads
-  const baseRoot = 'https://stackle-djangoapp-t6rn9w-e998d7-31-97-237-244.traefik.me';
+  if (trimmed.toLowerCase() == 'string')
+    return ''; // placeholder from example payloads
+  const baseRoot =
+      'https://stackle-djangoapp-t6rn9w-e998d7-31-97-237-244.traefik.me';
 
   final uri = Uri.tryParse(trimmed);
   if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
@@ -85,7 +88,7 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
   List<String> _locationOptions() {
     final Map<String, String> areaMap = {}; // normalized -> display
     areaMap['all'] = 'All';
-    
+
     for (final org in hrController.organizations) {
       if (org.area.isNotEmpty) {
         final normalized = org.area.trim().toLowerCase();
@@ -95,9 +98,11 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
         }
       }
     }
-    
+
     final list = areaMap.values.toList();
-    list.sort((a, b) => a == 'All' ? -1 : (b == 'All' ? 1 : a.toLowerCase().compareTo(b.toLowerCase())));
+    list.sort((a, b) => a == 'All'
+        ? -1
+        : (b == 'All' ? 1 : a.toLowerCase().compareTo(b.toLowerCase())));
     return list;
   }
 
@@ -112,26 +117,28 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           bool isMobile = constraints.maxWidth < 768;
-          bool isTablet = constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
+          bool isTablet =
+              constraints.maxWidth >= 768 && constraints.maxWidth < 1240;
           // compute a continuous scale based on width so UI scales smoothly
           _scale = _computeScale(constraints.maxWidth);
 
           return SafeArea(
             child: SingleChildScrollView(
               child: Container(
-                      padding: EdgeInsets.all(isMobile ? 16 * _scale : 24 * _scale),
+                padding: EdgeInsets.all(isMobile ? 16 * _scale : 14 * _scale),
                 constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - (isMobile ? 32 * _scale : 48 * _scale),
+                  minHeight: constraints.maxHeight -
+                      (isMobile ? 32 * _scale : 48 * _scale),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                          _buildHeader(isMobile),
-                          SizedBox(height: 24 * _scale),
-                          _buildSubHeader(isMobile),
-                          SizedBox(height: 24 * _scale),
-                          _buildFiltersRow(isMobile),
-                          SizedBox(height: 32 * _scale),
+                    _buildHeader(isMobile),
+                    SizedBox(height: 24 * _scale),
+                    _buildSubHeader(isMobile),
+                    SizedBox(height: 24 * _scale),
+                    _buildFiltersRow(isMobile),
+                    SizedBox(height: 32 * _scale),
                     // Let the GridView size itself inside the outer SingleChildScrollView.
                     // Use a shrink-wrapped, non-scrollable GridView so the outer scroll view
                     // handles scrolling. This avoids a fixed height which caused cropping
@@ -150,26 +157,26 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
   Widget _buildHeader(bool isMobile) {
     return Row(
       children: [
-        if (isMobile)
-          IconButton(
-            icon: Icon(Icons.menu, size: 20 * _scale),
-            onPressed: () {},
-          ),
-        Icon(Icons.menu, color: Colors.black54, size: 20 * _scale),
-        SizedBox(width: 16 * _scale),
+        // if (isMobile)
+        //   IconButton(
+        //     icon: Icon(Icons.menu, size: 20 * _scale),
+        //     onPressed: () {},
+        //   ),
+        // SizedBox(width: 16 * _scale),
         Text(
           'Manage HR Organizations',
           style: TextStyle(
-            fontSize: 28 * _scale,
+            fontSize: 16 * _scale,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
         const Spacer(),
         IconButton(
-          icon: Icon(Icons.notifications_outlined, color: Colors.black54, size: 20 * _scale),
+          icon: Icon(Icons.notifications_outlined,
+              color: Colors.black54, size: 20 * _scale),
           onPressed: () {
-            Get.to(() => NotificationScreen());
+             Get.toNamed(AppRoutes.notificationScreen);
           },
         ),
         // const SizedBox(width: 16),
@@ -228,14 +235,16 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
             children: [
               Expanded(child: Obx(() {
                 final options = ['All', 'Approved', 'Pending'];
-                return _buildDropdownFromList(options, hrController.selectedFilter.value, (value) {
+                return _buildDropdownFromList(
+                    options, hrController.selectedFilter.value, (value) {
                   hrController.updateFilter(value!);
                 });
               })),
               SizedBox(width: 8 * _scale),
               Expanded(child: Obx(() {
                 final options = _daysOptions();
-                return _buildDropdownFromList(options, hrController.selectedDays.value, (value) {
+                return _buildDropdownFromList(
+                    options, hrController.selectedDays.value, (value) {
                   if (value != null) hrController.updateDaysFilter(value);
                 });
               })),
@@ -244,7 +253,8 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
           SizedBox(height: 8 * _scale),
           Obx(() {
             final options = _locationOptions();
-            return _buildDropdownFromList(options, hrController.selectedLocation.value, (value) {
+            return _buildDropdownFromList(
+                options, hrController.selectedLocation.value, (value) {
               if (value != null) hrController.updateLocationFilter(value);
             });
           }),
@@ -258,19 +268,22 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
         SizedBox(width: 16 * _scale),
         Expanded(child: Obx(() {
           final options = ['All', 'Approved', 'Pending'];
-          return _buildDropdownFromList(options, hrController.selectedFilter.value, (value) {
+          return _buildDropdownFromList(
+              options, hrController.selectedFilter.value, (value) {
             hrController.updateFilter(value!);
           });
         })),
         SizedBox(width: 12 * _scale),
         Expanded(child: Obx(() {
-          return _buildDropdownFromList(_locationOptions(), hrController.selectedLocation.value, (value) {
+          return _buildDropdownFromList(
+              _locationOptions(), hrController.selectedLocation.value, (value) {
             hrController.updateLocationFilter(value!);
           });
         })),
         SizedBox(width: 12 * _scale),
         Expanded(child: Obx(() {
-          return _buildDropdownFromList(_daysOptions(), hrController.selectedDays.value, (value) {
+          return _buildDropdownFromList(
+              _daysOptions(), hrController.selectedDays.value, (value) {
             hrController.updateDaysFilter(value!);
           });
         })),
@@ -298,7 +311,8 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
     );
   }
 
-  Widget _buildDropdownFromList(List<String> options, String value, Function(String?) onChanged) {
+  Widget _buildDropdownFromList(
+      List<String> options, String value, Function(String?) onChanged) {
     final safeOptions = options.isNotEmpty ? options : ['All'];
     final safeValue = safeOptions.contains(value) ? value : safeOptions.first;
 
@@ -314,7 +328,8 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
         child: DropdownButton<String>(
           value: safeValue,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 20 * _scale),
+          icon: Icon(Icons.keyboard_arrow_down,
+              color: Colors.grey, size: 20 * _scale),
           style: TextStyle(color: Colors.black87, fontSize: 14 * _scale),
           dropdownColor: Colors.white,
           items: safeOptions.map((String item) {
@@ -330,13 +345,35 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
   }
 
   Widget _buildOrganizationsGrid(bool isMobile, bool isTablet) {
+    // Determine columns from actual available width so we can show 3 columns
+    // for medium-large windows (< 1400px) instead of always 4.
+    final width = MediaQuery.of(context).size.width;
     int crossAxisCount;
-    if (isMobile) {
-      crossAxisCount = 1;
-    } else if (isTablet) {
-      crossAxisCount = 2;
+    if (width < 1100) {
+      crossAxisCount = 1; // mobile
+    } else if (width < 1250) {
+      crossAxisCount = 2; // tablet
+    } else if (width < 1700) {
+      crossAxisCount = 3; // medium desktop
     } else {
-      crossAxisCount = 4;
+      crossAxisCount = 4; // large desktop
+    }
+
+    double childAspectRatio = 1.64 * _scale;
+    if (width < 350) {
+      childAspectRatio = 1.6 * _scale;
+    } else if (width < 480) {
+      childAspectRatio = 2 * _scale;
+    } else if (width < 870) {
+      childAspectRatio = 2.5 * _scale;
+    } else if (width < 1100) {
+      childAspectRatio = 3.3 * _scale;
+    } else if (width < 1100) {
+      childAspectRatio = 2 * _scale;
+    } else if (width < 1300) {
+      childAspectRatio = 1.8 * _scale;
+    } else {
+      childAspectRatio = 1.64 * _scale;
     }
 
     return Obx(() {
@@ -360,28 +397,15 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
         );
       }
 
-  // Compute a responsive childAspectRatio so cards can grow taller on
-  // narrow screens and avoid cropping action buttons.
-      double childAspectRatio;
-      if (isMobile) {
-        // On very narrow screens, make cards taller
-        childAspectRatio = 2.4; // width / height -> larger value makes them wider, so we use >1 to allow reasonable height
-      } else if (isTablet) {
-        childAspectRatio = 1.6;
-      } else {
-        // Desktop: wider cards
-        childAspectRatio = 1.25;
-      }
-
       return GridView.builder(
         shrinkWrap: true,
         // Let the outer SingleChildScrollView handle scrolling.
         physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.all(12 * _scale),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 16 * _scale,
-          mainAxisSpacing: 16 * _scale,
+          crossAxisSpacing: 8 * _scale,
+          mainAxisSpacing: 8 * _scale,
           childAspectRatio: childAspectRatio,
         ),
         itemCount: hrController.filteredOrganizations.length,
@@ -411,7 +435,7 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
           ],
         ),
         child: Padding(
-          padding: EdgeInsets.all(16 * _scale), // Same padding as professionals
+          padding: EdgeInsets.all(8 * _scale), // Same padding as professionals
           child: Column(
             // Allow the column to take the available height and make the
             // middle content flexible so the bottom action button won't be
@@ -423,12 +447,16 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
               Row(
                 children: [
                   Text('ORG ID: ${organization.id.toString()}',
-                      style: TextStyle(fontSize: 12 * _scale, color: Colors.grey[600])),
+                      style: TextStyle(
+                          fontSize: 12 * _scale, color: Colors.grey[600])),
                   const Spacer(),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8 * _scale, vertical: 4 * _scale),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 8 * _scale, vertical: 4 * _scale),
                     decoration: BoxDecoration(
-                      color: organization.isAdminApproved ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                      color: organization.isAdminApproved
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12 * _scale),
                     ),
                     child: Text(
@@ -436,84 +464,94 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
                       style: TextStyle(
                         fontSize: 10 * _scale,
                         fontWeight: FontWeight.w600,
-                        color: organization.isAdminApproved ? Colors.green : Colors.red,
+                        color: organization.isAdminApproved
+                            ? Colors.green
+                            : Colors.red,
                       ),
                     ),
                   ),
                 ],
               ),
-              
+
               SizedBox(height: 6 * _scale),
-              
+
               // Profile section (like professionals)
               _buildProfileSection(organization),
-              
+
               SizedBox(height: 8 * _scale),
 
               // Make details + stats flexible so they can shrink slightly when
               // vertical space is constrained, avoiding RenderFlex overflow.
-              Flexible(
-                fit: FlexFit.tight,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Organization Details Section
-                    _buildOrganizationDetailsSection(organization),
-                    SizedBox(height: 8 * _scale),
-                    // Stats like professionals (experience and education)
-                    Row(
-                      children: [
-                        Icon(Icons.work_outline, size: 13 * _scale, color: Colors.grey[600]),
-                        SizedBox(width: 3 * _scale),
-                        Text(
-                          '${organization.activeJobCount} jobs',
-                          style: TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
-                        ),
-                        const Spacer(),
-                        Icon(Icons.people_outline, size: 13 * _scale, color: Colors.grey[600]),
-                        SizedBox(width: 3 * _scale),
-                        Text(
-                          '${organization.requestsCount} req',
-                          style: TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // SizedBox(height: 6 * _scale),  
-
-              // Responsive Action button: adapts height and font size based on
-              // available card width; FittedBox ensures text scales down if needed.
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final w = constraints.maxWidth;
-                  final double height = w < 180 ? 36 : 40;
-                  final double fontSize = w < 180 ? 11 : (w < 260 ? 12 : 13);
-                  return SizedBox(
-                    width: double.infinity,
-                    height: height,
-                    child: ElevatedButton(
-                      onPressed: () => _navigateToDetailScreen(organization),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: organization.isAdminApproved ? Colors.blue : Colors.red,
-                        side: BorderSide(color: organization.isAdminApproved ? Colors.blue : Colors.red),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Organization Details Section
+                  _buildOrganizationDetailsSection(organization),
+                  SizedBox(height: 8 * _scale),
+                  // Stats like professionals (experience and education)
+                  Row(
+                    children: [
+                      Icon(Icons.work_outline,
+                          size: 13 * _scale, color: Colors.grey[600]),
+                      SizedBox(width: 3 * _scale),
+                      Text(
+                        '${organization.activeJobCount} jobs',
+                        style: TextStyle(
+                            fontSize: 11 * _scale, color: Colors.grey[600]),
                       ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.center,
-                        child: Text(
-                          organization.isAdminApproved ? 'View Details' : 'Review & Approve',
-                          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
-                        ),
+                      const Spacer(),
+                      Icon(Icons.people_outline,
+                          size: 13 * _scale, color: Colors.grey[600]),
+                      SizedBox(width: 3 * _scale),
+                      Text(
+                        '${organization.requestsCount} req',
+                        style: TextStyle(
+                            fontSize: 11 * _scale, color: Colors.grey[600]),
                       ),
-                    ),
-                  );
-                },
+                    ],
+                  ),
+                  SizedBox(height: 6 * _scale),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final w = constraints.maxWidth;
+                      final double height = w < 180 ? 36 : 40;
+                      final double fontSize =
+                          w < 180 ? 11 : (w < 260 ? 12 : 13);
+                      return SizedBox(
+                        width: double.infinity,
+                        height: height,
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              _navigateToDetailScreen(organization),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: organization.isAdminApproved
+                                ? Colors.blue
+                                : Colors.red,
+                            side: BorderSide(
+                                color: organization.isAdminApproved
+                                    ? Colors.blue
+                                    : Colors.red),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              organization.isAdminApproved
+                                  ? 'View Details'
+                                  : 'Review & Approve',
+                              style: TextStyle(
+                                  fontSize: fontSize,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -526,7 +564,7 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
     return Row(
       children: [
         CircleAvatar(
-      radius: 22 * _scale,
+          radius: 22 * _scale,
           backgroundImage: (() {
             final img = organization.logo ?? '';
             if (img.isEmpty) return null;
@@ -578,15 +616,17 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
   Widget _buildOrganizationDetailsSection(Organization organization) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      children: [
         Row(
           children: [
-            Icon(Icons.location_history, size: 12 * _scale, color: Colors.grey[600]),
+            Icon(Icons.location_history,
+                size: 12 * _scale, color: Colors.grey[600]),
             SizedBox(width: 4 * _scale),
             Expanded(
               child: Text(
                 '${organization.area}',
-                style: TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
+                style:
+                    TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -601,7 +641,8 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
             Expanded(
               child: Text(
                 '${organization.city}, ${organization.state}',
-                style: TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
+                style:
+                    TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -616,7 +657,8 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
             Expanded(
               child: Text(
                 organization.email ?? 'No email',
-                style: TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
+                style:
+                    TextStyle(fontSize: 11 * _scale, color: Colors.grey[600]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -628,6 +670,6 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
   }
 
   void _navigateToDetailScreen(Organization organization) {
-    Get.to(() => HrDetailsScreen(organization: organization));
+    Get.toNamed(AppRoutes.hrDetails, arguments: organization);
   }
 }

@@ -1,47 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
+import 'package:stackle_admin/core/routing.dart';
 import 'package:stackle_admin/view/accounts/accounts_screen.dart';
 import 'package:stackle_admin/view/dashboard.dart';
 import 'package:stackle_admin/view/manageHR/manage_hr_screen.dart';
 import 'package:stackle_admin/view/manage_Professionals/manage_professional_screen.dart';
-import 'package:stackle_admin/view/requests/request_screen.dart';
+// import 'package:stackle_admin/view/requests/request_screen.dart';
 import 'package:stackle_admin/view/settings/blocked_users_screen.dart';
+import 'package:stackle_admin/view/settings/notification_screen.dart';
 import 'package:stackle_admin/view/settings/settings_screen.dart';
 import 'package:stackle_admin/widgets/side_bar.dart';
 
 class MainDashboard extends StatefulWidget {
-  const MainDashboard({super.key});
+  final int initialIndex;
+  const MainDashboard({super.key, this.initialIndex = 0});
 
   @override
   State<MainDashboard> createState() => _MainDashboardState();
 }
 
 class _MainDashboardState extends State<MainDashboard> {
-  int selectedIndex = 0;
+  late int selectedIndex;
   late final AuthController authController;
 
   @override
   void initState() {
     super.initState();
+    // Initialize selected index from widget parameter
+    selectedIndex = widget.initialIndex;
     // Use Get.put to register the AuthController so it can be found by other controllers
     authController = Get.put(AuthController());
-    
+
     // Fetch current user data after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authController.fetchCurrentUser();
     });
   }
 
-  List<Widget> get _screens => [
-        DashboardScreen(authController: authController),
-        ManageHRScreen(),
-        const ManageProfessionalsScreen(),
-        const AccountsScreen(),
-        // const RequestsScreen(),
-        const BlockedUsersListScreen(),
-        const SettingsScreen(),
-      ];
+  // Screens are returned via _screenForIndex so we can pass layout hints.
+
+  // Return the appropriate screen widget and pass layout hints to children
+  // so they can decide whether to render desktop or mobile variants.
+  Widget _screenForIndex(int index, bool outerIsMobile) {
+    switch (index) {
+      case 0:
+        return DashboardScreen(
+            authController: authController, forceDesktop: !outerIsMobile);
+      case 1:
+        return ManageHRScreen();
+      case 2:
+        return const ManageProfessionalsScreen();
+      case 3:
+        return const AccountsScreen();
+      case 4:
+        return const BlockedUsersListScreen();
+      case 5:
+        return const SettingsScreen();
+      default:
+        return DashboardScreen(
+            authController: authController, forceDesktop: !outerIsMobile);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +70,6 @@ class _MainDashboardState extends State<MainDashboard> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           bool isMobile = constraints.maxWidth < 768;
-          bool isTablet =
-              constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
-          bool isDesktop = constraints.maxWidth >= 1024;
 
           if (isMobile) {
             return Scaffold(
@@ -73,17 +90,24 @@ class _MainDashboardState extends State<MainDashboard> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.black,
+                    ),
+                    onPressed: () {
+                      Get.toNamed(AppRoutes.notificationScreen);
+                    },
+                  ),
+                ],
               ),
               drawer: Sidebar(
                 authController: authController,
                 isMobile: true,
                 selectedIndex: selectedIndex,
-                onItemSelected: (index) {
-                  setState(() => selectedIndex = index);
-                  Navigator.pop(context); // close drawer
-                },
               ),
-              body: _screens[selectedIndex],
+              body: _screenForIndex(selectedIndex, isMobile),
             );
           } else {
             return Row(
@@ -92,12 +116,9 @@ class _MainDashboardState extends State<MainDashboard> {
                   authController: authController,
                   isMobile: false,
                   selectedIndex: selectedIndex,
-                  onItemSelected: (index) {
-                    setState(() => selectedIndex = index);
-                  },
                 ),
                 Expanded(
-                  child: _screens[selectedIndex],
+                  child: _screenForIndex(selectedIndex, isMobile),
                 ),
               ],
             );
