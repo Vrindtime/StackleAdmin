@@ -3,6 +3,7 @@ import 'package:stackle_admin/controllers/auth_gate.dart';
 import 'package:stackle_admin/view/auth/forgot_password_screen.dart';
 import 'package:stackle_admin/view/auth/login_screen.dart';
 import 'package:stackle_admin/view/main_dashboard.dart';
+import 'package:stackle_admin/view/manageHR/hr_chat_history.dart';
 import 'package:stackle_admin/view/manageHR/hr_details_screen.dart';
 import 'package:stackle_admin/view/manageHR/hr_job_details.dart';
 import 'package:stackle_admin/data/models/organization.dart';
@@ -14,6 +15,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String forgotPassword = '/forgot-password';
   static const String dashboard = '/dashboard';
+  static const String notificationScreen = '/notifications';
   static const String hr = '/dashboard/hr';
   static const String professionals = '/dashboard/professionals';
   static const String accounts = '/dashboard/accounts';
@@ -21,7 +23,7 @@ class AppRoutes {
   static const String settings = '/dashboard/settings';
   static const String hrDetails = '/dashboard/hr/details';
   static const String hrJobDetails = '/dashboard/hr/job-details';
-  static const String notificationScreen = '/notifications';
+  static const String hrChatScreen = '/dashboard/hr/details/chatlist';
 
 
   static List<GetPage> getPages = [
@@ -40,5 +42,6 @@ class AppRoutes {
       final args = Get.arguments as Map<String, dynamic>;
       return HRJobDetailScreen(job: args['job'] as job_model.Job, organizationName: args['organizationName'] as String);
     }),
+    GetPage(name: hrChatScreen, page: () => HRChatDetailScreen())
   ];
 }

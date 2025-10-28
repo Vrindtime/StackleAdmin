@@ -77,63 +77,17 @@ class SettingsScreen extends StatelessWidget {
               ),
 
               // User profile section
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.notifications_outlined,
-                      color: Color(0xFF6B7280),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  _buildUserProfile(),
-                ],
+              IconButton(
+                onPressed: () {
+                  Get.toNamed('/notifications');
+                },
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  color: Color(0xFF6B7280),
+                  size: 24,
+                ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUserProfile() {
-    return Row(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Nived Manoj',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2D3748),
-              ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'Admin',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            image: const DecorationImage(
-              image: NetworkImage(
-                  'https://via.placeholder.com/48x48/8B5A2B/FFFFFF?text=NM'),
-              fit: BoxFit.cover,
-            ),
           ),
         ),
       ],

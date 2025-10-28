@@ -192,38 +192,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
   Widget _buildHeader(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1024;
 
-    return Row(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.menu,
-            color: Colors.grey,
-            size: 24,
-          ),
-        ),
-        const SizedBox(width: 24),
-        Text(
-          'Account',
-          style: TextStyle(
-            fontSize: isDesktop ? 32 : 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-      ],
+    return Text(
+      'Account',
+      style: TextStyle(
+        fontSize: isDesktop ? 32 : 28,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
     );
   }
 
@@ -394,6 +369,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             // When not in edit mode, show Edit Profile button
             Container(
               width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.06,
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {

@@ -139,62 +139,62 @@ class _RequestsScreenState extends State<RequestsScreen> {
             size: 24,
           ),
         ),
-        const SizedBox(width: 16),
-        Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'Nived Manoj',
-                  style: TextStyle(
-                    fontSize: isDesktop ? 18 : 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Admin',
-                  style: TextStyle(
-                    fontSize: isDesktop ? 14 : 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 48,
-                    height: 48,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.person, color: Colors.grey),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        // const SizedBox(width: 16),
+        // Row(
+        //   children: [
+        //     Column(
+        //       crossAxisAlignment: CrossAxisAlignment.end,
+        //       children: [
+        //         Text(
+        //           'Nived Manoj',
+        //           style: TextStyle(
+        //             fontSize: isDesktop ? 18 : 16,
+        //             fontWeight: FontWeight.bold,
+        //             color: Colors.black87,
+        //           ),
+        //         ),
+        //         const SizedBox(height: 2),
+        //         Text(
+        //           'Admin',
+        //           style: TextStyle(
+        //             fontSize: isDesktop ? 14 : 12,
+        //             color: Colors.grey[600],
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //     const SizedBox(width: 12),
+        //     Container(
+        //       width: 48,
+        //       height: 48,
+        //       decoration: BoxDecoration(
+        //         borderRadius: BorderRadius.circular(12),
+        //         boxShadow: [
+        //           BoxShadow(
+        //             color: Colors.black.withOpacity(0.1),
+        //             blurRadius: 8,
+        //             offset: const Offset(0, 2),
+        //           ),
+        //         ],
+        //       ),
+        //       child: ClipRRect(
+        //         borderRadius: BorderRadius.circular(12),
+        //         child: Image.network(
+        //           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+        //           width: 48,
+        //           height: 48,
+        //           fit: BoxFit.cover,
+        //           errorBuilder: (context, error, stackTrace) => Container(
+        //             width: 48,
+        //             height: 48,
+        //             color: Colors.grey[300],
+        //             child: const Icon(Icons.person, color: Colors.grey),
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }

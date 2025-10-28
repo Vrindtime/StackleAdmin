@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:stackle_admin/core/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
@@ -5,16 +7,25 @@ import 'package:stackle_admin/data/models/push_notification.dart';
 import 'package:stackle_admin/data/models/user.dart';
 import 'package:stackle_admin/data/services/notification_service.dart';
 import 'package:stackle_admin/data/services/user_service.dart';
+import 'package:stackle_admin/data/services/websocket_notification_service.dart';
 
 class NotificationController extends GetxController {
   NotificationController({
     NotificationService? notificationService,
     UserService? userService,
+    // Optional WebSocket service for injection/testing
+    WebSocketNotificationService? wsService,
   })  : _notificationService = notificationService ?? NotificationService(),
-        _userService = userService ?? UserService();
+        _userService = userService ?? UserService(),
+        _wsService = wsService;
 
   final NotificationService _notificationService;
   final UserService _userService;
+
+  // --- New WebSocket Properties ---
+  WebSocketNotificationService? _wsService;
+  StreamSubscription<PushNotification>? _wsSubscription;
+  final Rxn<PushNotification> lastNewNotification = Rxn<PushNotification>(); // nullable reactive
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController messageController = TextEditingController();
@@ -32,19 +43,78 @@ class NotificationController extends GetxController {
   final RxString notificationsError = ''.obs;
 
   final RxList<PushNotification> notifications = <PushNotification>[].obs;
+  
 
   @override
   void onInit() {
     super.onInit();
+    // Assuming Get.find<AuthController>() provides the necessary user details
+    final authController = Get.find<AuthController>();
+
+    // Only connect if we have an access token available
+    if (authController.accessToken.value.isNotEmpty) {
+      _initWebSocket(
+        userId: authController.currentUser.value != null
+            ? authController.currentUser.value!.id.toString()
+            : 'unknown',
+        token: authController.accessToken.value,
+      );
+    }
+
     fetchRecipients();
     fetchNotifications();
   }
 
   @override
   void onClose() {
+    _wsSubscription?.cancel(); // Cancel subscription
+    _wsService?.close(); // Close the connection
+
     titleController.dispose();
     messageController.dispose();
     super.onClose();
+  }
+
+  // --- New WebSocket Logic ---
+  void _initWebSocket({required String userId, required String token}) {
+    // You should get the base URL from settings/env vars
+    final baseUrl = "wss://stackle.vrindtime.com/ws/notifications/$userId/";
+
+    _wsService = _wsService ?? WebSocketNotificationService(
+      baseUrl: baseUrl,
+      identifierId: userId,
+      authToken: token,
+    );
+
+    _wsSubscription = _wsService!.notificationsStream.listen(_handleIncomingNotification,
+        onError: (err) {
+      // Optionally handle subscription errors
+      print('WebSocket subscription error: $err');
+    });
+    _wsService!.connect();
+  }
+
+  void _handleIncomingNotification(PushNotification notification) {
+    // 1. Add the new notification to the history list immediately
+    notifications.insert(0, notification);
+
+    // 2. Set the reactive variable to trigger the global popup UI
+    lastNewNotification.value = notification;
+
+    // 3. Optional: Automatically clear the popup after a short delay
+    Future.delayed(const Duration(seconds: 5), () {
+      if (lastNewNotification.value?.id == notification.id) {
+        lastNewNotification.value = null;
+      }
+    });
+
+    // 4. Update the unread count or other metrics if you track them
+    // You might also want to refetch the full notifications list if needed: fetchNotifications();
+  }
+
+  // Public method to clear the notification from the global popup explicitly
+  void clearPopup() {
+    lastNewNotification.value = null;
   }
 
   Future<void> fetchRecipients({String? search}) async {

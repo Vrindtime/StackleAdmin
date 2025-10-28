@@ -7,39 +7,39 @@ import '../../data/models/organization.dart';
 import '../../core/routing.dart';
 import 'hr_details_screen.dart';
 
-String _resolveMediaUrl(String url) {
-  if (url.isEmpty) return url;
-  final trimmed = url.trim();
-  if (trimmed.toLowerCase() == 'string')
-    return ''; // placeholder from example payloads
-  const baseRoot =
-      'https://stackle-djangoapp-t6rn9w-e998d7-31-97-237-244.traefik.me';
+// String _resolveMediaUrl(String url) {
+//   if (url.isEmpty) return url;
+//   final trimmed = url.trim();
+//   if (trimmed.toLowerCase() == 'string')
+//     return ''; // placeholder from example payloads
+//   const baseRoot =
+//       'https://stackle-djangoapp-t6rn9w-e998d7-31-97-237-244.traefik.me';
 
-  final uri = Uri.tryParse(trimmed);
-  if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-    final path = uri.path;
-    final mediaIndex = path.indexOf('/media/');
-    if (mediaIndex != -1) {
-      final rel = path.substring(mediaIndex + '/media/'.length);
-      return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
-    }
-    try {
-      if (Uri.parse(baseRoot).host == uri.host) return trimmed;
-    } catch (_) {}
-    return trimmed; // external host
-  }
+//   final uri = Uri.tryParse(trimmed);
+//   if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+//     final path = uri.path;
+//     final mediaIndex = path.indexOf('/media/');
+//     if (mediaIndex != -1) {
+//       final rel = path.substring(mediaIndex + '/media/'.length);
+//       return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
+//     }
+//     try {
+//       if (Uri.parse(baseRoot).host == uri.host) return trimmed;
+//     } catch (_) {}
+//     return trimmed; // external host
+//   }
 
-  if (trimmed.startsWith('/media/')) {
-    return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}$trimmed';
-  }
-  final idx = trimmed.indexOf('/media/');
-  if (idx != -1) {
-    final rel = trimmed.substring(idx + '/media/'.length);
-    return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
-  }
-  final rel = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
-  return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
-}
+//   if (trimmed.startsWith('/media/')) {
+//     return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}$trimmed';
+//   }
+//   final idx = trimmed.indexOf('/media/');
+//   if (idx != -1) {
+//     final rel = trimmed.substring(idx + '/media/'.length);
+//     return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
+//   }
+//   final rel = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+//   return '${baseRoot.replaceAll(RegExp(r'/+$'), '')}/media/$rel';
+// }
 
 class ManageHRScreen extends StatefulWidget {
   const ManageHRScreen({Key? key}) : super(key: key);
@@ -567,11 +567,7 @@ class _ManageHRScreenState extends State<ManageHRScreen> {
           radius: 22 * _scale,
           backgroundImage: (() {
             final img = organization.logo ?? '';
-            if (img.isEmpty) return null;
-            if (img.toLowerCase() == 'string') return null; // placeholder skip
-            final resolved = _resolveMediaUrl(img);
-            if (resolved.isEmpty) return null;
-            return NetworkImage(resolved);
+            return NetworkImage(img);
           })(),
           backgroundColor: Colors.blue.shade100,
           child: (organization.logo == null || organization.logo!.isEmpty)

@@ -79,43 +79,43 @@ class FeedbacksScreen extends StatelessWidget {
             const SizedBox(width: 16),
 
             // User profile section
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Nived Manoj',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      'Admin',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(
-                          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: [
+            //     Column(
+            //       crossAxisAlignment: CrossAxisAlignment.end,
+            //       children: [
+            //         Text(
+            //           'Nived Manoj',
+            //           style: TextStyle(
+            //             fontSize: 16,
+            //             fontWeight: FontWeight.w600,
+            //             color: Colors.black87,
+            //           ),
+            //         ),
+            //         Text(
+            //           'Admin',
+            //           style: TextStyle(
+            //             fontSize: 14,
+            //             color: Colors.black54,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //     const SizedBox(width: 12),
+            //     Container(
+            //       width: 44,
+            //       height: 44,
+            //       decoration: BoxDecoration(
+            //         shape: BoxShape.circle,
+            //         image: DecorationImage(
+            //           image: NetworkImage(
+            //               'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'),
+            //           fit: BoxFit.cover,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ],

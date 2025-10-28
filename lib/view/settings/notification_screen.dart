@@ -4,7 +4,7 @@ import 'package:stackle_admin/controllers/notification_controller.dart';
 import 'package:stackle_admin/data/models/push_notification.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({Key? key}) : super(key: key);
+  const NotificationScreen({super.key});
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();

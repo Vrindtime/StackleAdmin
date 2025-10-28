@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/instance_manager.dart';
 
 class HRChatDetailScreen extends StatefulWidget {
   const HRChatDetailScreen({Key? key}) : super(key: key);
@@ -44,7 +46,7 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 2);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
   }
 
   @override
@@ -81,8 +83,6 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
         children: [
           _buildHeader(context),
           const SizedBox(height: 24),
-          _buildStatsCards(context),
-          const SizedBox(height: 24),
           _buildTabSection(context),
           const SizedBox(height: 24),
           Expanded(child: _buildChatSection(context)),
@@ -108,7 +108,7 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
       child: Row(
         children: [
           IconButton(
-            onPressed: () {},
+            onPressed: () => Get.back(),
             icon: const Icon(
               Icons.arrow_back_ios,
               color: Color(0xFF2D3748),
@@ -168,31 +168,6 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
     );
   }
 
-  Widget _buildStatsCards(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            title: 'Total Job Posts',
-            value: '10,567',
-            icon: Icons.work_outline,
-            iconColor: const Color(0xFFF59E0B),
-            iconBgColor: const Color(0xFFFEF3C7),
-          ),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: _buildStatCard(
-            title: 'Total Vacancies',
-            value: '10,567',
-            icon: Icons.people_outline,
-            iconColor: const Color(0xFF10B981),
-            iconBgColor: const Color(0xFFD1FAE5),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildStatCard({
     required String title,
@@ -290,9 +265,8 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorPadding: const EdgeInsets.all(8),
         tabs: const [
-          Tab(text: 'Details'),
-          Tab(text: 'Job Posts'),
-          Tab(text: 'Chat History'),
+          Tab(text: 'Client Chat'),
+          Tab(text: 'Organization Chat'),
         ],
       ),
     );

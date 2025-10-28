@@ -239,33 +239,33 @@ class _SendNotificationScreenState extends State<SendNotificationScreen> {
           icon: const Icon(Icons.notifications_outlined, color: Colors.black54),
           onPressed: () {},
         ),
-        const SizedBox(width: 16),
-        Row(
-          children: [
-            const Text(
-              'Nived Manoj',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Admin',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(width: 12),
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, color: Colors.white),
-            ),
-          ],
-        ),
+        // const SizedBox(width: 16),
+        // Row(
+        //   children: [
+        //     const Text(
+        //       'Nived Manoj',
+        //       style: TextStyle(
+        //         fontSize: 16,
+        //         fontWeight: FontWeight.w500,
+        //         color: Colors.black87,
+        //       ),
+        //     ),
+        //     const SizedBox(width: 8),
+        //     const Text(
+        //       'Admin',
+        //       style: TextStyle(
+        //         fontSize: 14,
+        //         color: Colors.black54,
+        //       ),
+        //     ),
+        //     const SizedBox(width: 12),
+        //     CircleAvatar(
+        //       radius: 20,
+        //       backgroundColor: Colors.grey[300],
+        //       child: const Icon(Icons.person, color: Colors.white),
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }

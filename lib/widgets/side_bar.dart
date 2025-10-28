@@ -109,13 +109,13 @@ class Sidebar extends StatelessWidget {
       child: ListTile(
         leading: Icon(
           icon,
-          color: isActive ? Colors.black : Colors.white,
+          color: isActive ? const Color(0xFFFFD700) : Colors.white,
           size: 20,
         ),
         title: Text(
           title,
           style: TextStyle(
-            color: isActive ? Colors.black : Colors.white,
+            color: isActive ? const Color(0xFFFFD700) : Colors.white,
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
