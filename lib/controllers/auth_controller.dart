@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:stackle_admin/core/routing.dart';
 import 'package:stackle_admin/data/services/auth_service.dart';
 import 'package:stackle_admin/data/services/user_service.dart';
 import 'package:stackle_admin/data/models/user.dart';
@@ -23,6 +24,13 @@ class AuthController extends GetxController {
     super.onInit();
     // Load tokens from storage when controller initializes
     _loadTokensFromStorage();
+    // If tokens were present in storage, proactively fetch current user so
+    // global user state is available to other controllers/widgets early.
+    if (accessToken.value.isNotEmpty) {
+      // fire-and-forget; controllers depending on currentUser should listen
+      // to AuthController.currentUser or to accessToken changes.
+      fetchCurrentUser();
+    }
   }
 
   void _loadTokensFromStorage() {
@@ -44,14 +52,22 @@ class AuthController extends GetxController {
       isLoading.value = true;
       final data = await _authService.login(email, password);
 
-      //Save tokens in memory
-      accessToken.value = data["access"] ?? "";
-      refreshToken.value = data["refresh"] ?? "";
+      // Extract tokens
+      final newAccess = data["access"] ?? '';
+      final newRefresh = data["refresh"] ?? '';
 
-      // Save tokens to local storage with timestamp
-      box.write("access_token", accessToken.value);
-      box.write("refresh_token", refreshToken.value);
-      box.write("token_timestamp", DateTime.now().millisecondsSinceEpoch);
+      // Save tokens to local storage with timestamp and await to ensure
+      // persistence before other code reads storage directly.
+      await box.write("access_token", newAccess);
+      await box.write("refresh_token", newRefresh);
+      await box.write("token_timestamp", DateTime.now().millisecondsSinceEpoch);
+
+      // Save tokens in memory (Rx) and notify listeners
+      accessToken.value = newAccess;
+      refreshToken.value = newRefresh;
+      // Ensure observers are notified even if value didn't change (edge-case)
+      accessToken.refresh();
+      refreshToken.refresh();
 
       print('AuthController: Saved tokens to storage:');
       print(
@@ -117,6 +133,7 @@ class AuthController extends GetxController {
     box.remove("token_timestamp");
 
     // Logout complete (navigation will be handled by calling code)
+    Get.offAllNamed(AppRoutes.login);
   }
 
   bool isTokenExpired() {

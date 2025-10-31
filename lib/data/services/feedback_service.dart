@@ -26,7 +26,8 @@ class FeedbackService {
         final List<dynamic> jsonData = jsonDecode(response.body);
         return jsonData.map((json) => FeedbackModel.fromJson(json)).toList();
       } else {
-        print("DEBUG: Get feedbacks failed: ${response.body}, status code: ${response.statusCode}");
+        print("DEBUG: GET ${url.toString()} failed: status=${response.statusCode}, body=${response.body}");
+        print("DEBUG: Headers sent: ${headers.keys.join(', ')} (Authorization present: ${headers.containsKey('Authorization')})");
         throw Exception("Failed to fetch feedbacks: Status code ${response.statusCode}");
       }
     } catch (e) {
@@ -50,7 +51,7 @@ class FeedbackService {
         headers["Authorization"] = "Bearer $token";
       }
 
-      final response = await http.get(url, headers: headers);
+  final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
@@ -58,7 +59,8 @@ class FeedbackService {
       } else if (response.statusCode == 404) {
         return null; // Feedback not found
       } else {
-        print("DEBUG: Get feedback by ID failed: ${response.body}, status code: ${response.statusCode}");
+        print("DEBUG: GET ${url.toString()} failed: status=${response.statusCode}, body=${response.body}");
+        print("DEBUG: Headers sent: ${headers.keys.join(', ')} (Authorization present: ${headers.containsKey('Authorization')})");
         throw Exception("Failed to fetch feedback: Status code ${response.statusCode}");
       }
     } catch (e) {
@@ -103,7 +105,8 @@ class FeedbackService {
       } else if (response.statusCode == 404) {
         throw Exception("Feedback not found");
       } else {
-        print("DEBUG: Update feedback failed: ${response.body}, status code: ${response.statusCode}");
+        print("DEBUG: PUT ${url.toString()} failed: status=${response.statusCode}, body=${response.body}");
+        print("DEBUG: Headers sent: ${headers.keys.join(', ')} (Authorization present: ${headers.containsKey('Authorization')})");
         throw Exception("Failed to update feedback: Status code ${response.statusCode}");
       }
     } catch (e) {
@@ -128,14 +131,15 @@ class FeedbackService {
         headers["Authorization"] = "Bearer $token";
       }
 
-      final response = await http.delete(url, headers: headers);
+  final response = await http.delete(url, headers: headers);
 
       if (response.statusCode == 204 || response.statusCode == 200) {
         return true; // Successfully deleted
       } else if (response.statusCode == 404) {
         throw Exception("Feedback not found");
       } else {
-        print("DEBUG: Delete feedback failed: ${response.body}, status code: ${response.statusCode}");
+        print("DEBUG: DELETE ${url.toString()} failed: status=${response.statusCode}, body=${response.body}");
+        print("DEBUG: Headers sent: ${headers.keys.join(', ')} (Authorization present: ${headers.containsKey('Authorization')})");
         throw Exception("Failed to delete feedback: Status code ${response.statusCode}");
       }
     } catch (e) {

@@ -29,6 +29,8 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
   late HRController hrController;
   Organization? organization; // resolved org details
   Map<String, dynamic>? chatOrgMap; // raw organization JSON from chat API (preferred)
+  // whether we've collected basic org info (name/phone/id) and can show the UI
+  bool _orgInfoReady = false;
   bool _isLoadingChats = false;
   String? _chatsErrorMessage;
   int? _selectedConversationId;
@@ -102,6 +104,10 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
       if (!mounted) return;
       setState(() {
         chatOrgMap = val; // keep raw JSON; UI will prefer chatOrgMap fields
+        // mark org info ready when chat API returns organization object
+        if (val != null) {
+          _orgInfoReady = true;
+        }
         // keep Organization model only if HRController has the full model available
         // leave `organization` unchanged here; _resolveOrganizationAndChats will set it if available
       });
@@ -275,6 +281,23 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
         organization = cur;
         // still try to fetch convos for the current org
         chatController.fetchConversations(cur.id);
+        // we already have basic info from HRController
+        setState(() { _orgInfoReady = true; });
+      } else {
+        // try to load organizations once so we can collect basic org info if available
+        hrController.fetchOrganizations().then((_) {
+          final after = hrController.currentOrganization.value;
+          if (after != null) {
+            setState(() {
+              organization = after;
+              _orgInfoReady = true;
+            });
+            chatController.fetchConversations(after.id);
+          } else {
+            // nothing found — mark ready so UI can render a fallback instead of blocking forever
+            setState(() { _orgInfoReady = true; });
+          }
+        });
       }
     }
   }
@@ -341,6 +364,15 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Wait until we've collected basic org info (name/phone/id) before showing chat UI.
+    // If not ready yet, show a simple centered loader so users can't interact until data is collected.
+    if (!_orgInfoReady) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFFAF7F0),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAF7F0),
       body: Row(
@@ -445,26 +477,51 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  chatOrgMap != null
-                      ? (chatOrgMap!['phone'] ?? organization?.phone ?? '').toString()
-                      : (organization?.phone ?? ''),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
+                // prefer phone from chat API JSON, fallback to Organization model
+                Builder(builder: (_) {
+                  final String phoneStr = chatOrgMap != null
+                      ? (chatOrgMap!['phone'] ?? organization?.phone ?? 'Ph: NaN').toString()
+                      : (organization?.phone ?? 'Ph: NaN').toString();
+                  String idStr = '';
+                  if (chatOrgMap != null) {
+                    final dynamic rawId = chatOrgMap!['id'];
+                    idStr = rawId != null ? rawId.toString() : (organization != null ? organization!.id.toString() : '');
+                  } else {
+                    idStr = organization != null ? organization!.id.toString() : '';
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        phoneStr,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                      if (idStr.isNotEmpty) const SizedBox(height: 4),
+                      if (idStr.isNotEmpty)
+                        Text(
+                          'ID: $idStr',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: Color(0xFF6B7280),
-              size: 24,
-            ),
-          ),
+          // IconButton(
+          //   onPressed: () {},
+          //   icon: const Icon(
+          //     Icons.more_vert,
+          //     color: Color(0xFF6B7280),
+          //     size: 24,
+          //   ),
+          // ),
         ],
       ),
     );

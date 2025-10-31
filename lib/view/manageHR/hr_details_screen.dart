@@ -206,6 +206,22 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
 
   void _viewDocument(String title, String url) {
     final resolved = _resolveMediaUrl(url);
+    if (resolved.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(title),
+          content: const Text('No preview available for this file.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            )
+          ],
+        ),
+      );
+      return;
+    }
     if (Uri.tryParse(resolved)?.path.toLowerCase().endsWith('.pdf') ?? false) {
       viewPdfInline(title, resolved, context);
       return;
@@ -977,6 +993,18 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
                 runSpacing: 12,
                 children: org.images.map((img) {
                   final resolved = _resolveMediaUrl(img);
+                  if (resolved.isEmpty) {
+                    return Container(
+                      width: 120,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  }
                   return GestureDetector(
                       onTap: () => _viewDocument('Image', img),
                       child: Container(

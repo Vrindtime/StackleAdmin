@@ -19,6 +19,30 @@ class UserController extends GetxController {
   var blockStatusError = ''.obs;
   var userBlockStatus = Rxn<BlockedUserStatus>();
 
+  /// Returns a hydrated [AuthController] with a non-empty access token.
+  /// Falls back to storage when the in-memory token is temporarily empty.
+  Future<AuthController> _ensureAuthControllerWithToken() async {
+    final authController = Get.isRegistered<AuthController>()
+        ? Get.find<AuthController>()
+        : Get.put(AuthController(), permanent: true);
+
+    await authController.checkAndRefreshToken();
+
+    if (authController.accessToken.value.isEmpty) {
+      final storedToken = authController.box.read('access_token');
+      if (storedToken is String && storedToken.isNotEmpty) {
+        authController.accessToken.value = storedToken;
+        authController.accessToken.refresh();
+      }
+    }
+
+    if (authController.accessToken.value.isEmpty) {
+      throw Exception('No authentication token available. Please login again.');
+    }
+
+    return authController;
+  }
+
   /// Fetch user details by user ID
   Future<void> fetchUserById(int userId) async {
     try {
@@ -26,14 +50,8 @@ class UserController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      // Check if AuthController is available
-      if (!Get.isRegistered<AuthController>()) {
-        throw Exception('Authentication controller not found. Please login first.');
-      }
-
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken();
-      final token = authController.accessToken.value;
+    final authController = await _ensureAuthControllerWithToken();
+    final token = authController.accessToken.value;
 
       print('UserController: Attempting to fetch user $userId');
       print('UserController: Token status: ${token.isNotEmpty ? "Available (${token.length} chars)" : "Missing"}');
@@ -87,17 +105,8 @@ class UserController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      if (!Get.isRegistered<AuthController>()) {
-        throw Exception('Authentication controller not found. Please login first.');
-      }
-
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken();
+      final authController = await _ensureAuthControllerWithToken();
       final token = authController.accessToken.value;
-
-      if (token.isEmpty) {
-        throw Exception('No authentication token available. Please login again.');
-      }
 
       print('UserController: Updating user $userId');
       
@@ -145,21 +154,12 @@ class UserController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      if (!Get.isRegistered<AuthController>()) {
-        throw Exception('Authentication controller not found. Please login first.');
-      }
-
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken();
+      final authController = await _ensureAuthControllerWithToken();
       final token = authController.accessToken.value;
 
       print('UserController: Attempting to fetch current user');
       print('UserController: Token status: ${token.isNotEmpty ? "Available (${token.length} chars)" : "Missing"}');
       
-      if (token.isEmpty) {
-        throw Exception('No authentication token available. Please login again.');
-      }
-
       final userData = await _service.getCurrentUser(token: token);
       currentUser.value = userData;
       
@@ -244,16 +244,8 @@ class UserController extends GetxController {
       isLoadingBlockStatus.value = true;
       blockStatusError.value = '';
 
-      if (!Get.isRegistered<AuthController>()) {
-        throw Exception('Authentication controller not found. Please login first.');
-      }
-
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken();
+      final authController = await _ensureAuthControllerWithToken();
       final token = authController.accessToken.value;
-      if (token.isEmpty) {
-        throw Exception('No authentication token available. Please login again.');
-      }
 
       final statusMap = await _service.getUserBlockStatus(userId: userId, token: token);
       userBlockStatus.value = BlockedUserStatus.fromJson(statusMap);
@@ -287,16 +279,8 @@ class UserController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      if (!Get.isRegistered<AuthController>()) {
-        throw Exception('Authentication controller not found. Please login first.');
-      }
-
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken();
+      final authController = await _ensureAuthControllerWithToken();
       final token = authController.accessToken.value;
-      if (token.isEmpty) {
-        throw Exception('No authentication token available. Please login again.');
-      }
 
       final result = await _service.blockUser(userId: userId, token: token);
       final success = result['success'] == true;
@@ -353,16 +337,8 @@ class UserController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      if (!Get.isRegistered<AuthController>()) {
-        throw Exception('Authentication controller not found. Please login first.');
-      }
-
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken();
+      final authController = await _ensureAuthControllerWithToken();
       final token = authController.accessToken.value;
-      if (token.isEmpty) {
-        throw Exception('No authentication token available. Please login again.');
-      }
 
       final result = await _service.unblockUser(userId: userId, token: token);
       final success = result['success'] == true;

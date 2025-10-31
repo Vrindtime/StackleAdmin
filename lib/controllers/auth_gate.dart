@@ -14,7 +14,7 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  final AuthController _authController = AuthController();
+  late final AuthController _authController;
   final AuthService _authService = AuthService();
   final GetStorage _storage = GetStorage();
 
@@ -24,6 +24,12 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
+    // Use the globally registered AuthController if available, otherwise register it.
+    if (Get.isRegistered<AuthController>()) {
+      _authController = Get.find<AuthController>();
+    } else {
+      _authController = Get.put(AuthController());
+    }
     // Defer navigation until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeAuth();
@@ -79,6 +85,8 @@ class _AuthGateState extends State<AuthGate> {
             'AuthGate: Token valid, setting in controller and navigating to dashboard');
         _authController.accessToken.value = accessToken;
         _authController.refreshToken.value = refreshToken;
+        // Ensure current user data is fetched immediately so UI shows basic data
+        await _authController.fetchCurrentUser();
         _navigateToDashboard();
       }
     } catch (e) {

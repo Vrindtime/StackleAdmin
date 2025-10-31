@@ -87,13 +87,16 @@ class Sidebar extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.logout, size: 18),
-                  SizedBox(width: 8),
-                  Text('Logout', style: TextStyle(fontWeight: FontWeight.w500)),
-                ],
+              child: InkWell(
+                onTap: authController.logout,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout, size: 18),
+                    SizedBox(width: 8),
+                    Text('Logout', style: TextStyle(fontWeight: FontWeight.w500)),
+                  ],
+                ),
               ),
             ),
           ),

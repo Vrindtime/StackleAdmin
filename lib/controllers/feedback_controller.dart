@@ -5,6 +5,7 @@ import 'package:stackle_admin/controllers/auth_controller.dart';
 
 class FeedbackController extends GetxController {
   final FeedbackService _feedbackService = FeedbackService();
+  late final AuthController _auth;
   
   // Observable list of feedbacks
   var feedbacks = <FeedbackModel>[].obs;
@@ -16,12 +17,24 @@ class FeedbackController extends GetxController {
   // Error handling
   var errorMessage = ''.obs;
   var hasError = false.obs;
+  bool _didInitialFetch = false; // prevent duplicate initial fetches
 
   @override
   void onInit() {
     super.onInit();
-    // Load feedbacks when controller initializes
-    fetchFeedbacks();
+    _auth = Get.find<AuthController>();
+    // If token already available, fetch immediately; otherwise, wait until it is set once.
+    if (_auth.accessToken.value.isNotEmpty) {
+      _didInitialFetch = true;
+      fetchFeedbacks();
+    } else {
+      ever<String>(_auth.accessToken, (val) {
+        if (!_didInitialFetch && val.isNotEmpty) {
+          _didInitialFetch = true;
+          fetchFeedbacks();
+        }
+      });
+    }
   }
 
   /// Fetches feedbacks from the API
@@ -35,14 +48,33 @@ class FeedbackController extends GetxController {
       
       hasError.value = false;
       errorMessage.value = '';
-
-      // Get auth token from AuthController
-      final authController = Get.find<AuthController>();
-      await authController.checkAndRefreshToken(); // Ensure token is valid
+      // Ensure token is valid
+      await _auth.checkAndRefreshToken();
+      var token = _auth.accessToken.value;
+      if (token.isEmpty) {
+        // No token yet; avoid making a failing request. Controller will try again when token arrives.
+        return;
+      }
       
-      final token = authController.accessToken.value;
-      
-      final fetchedFeedbacks = await _feedbackService.getFeedbacks(token: token);
+      List<FeedbackModel> fetchedFeedbacks;
+      try {
+        fetchedFeedbacks = await _feedbackService.getFeedbacks(token: token);
+      } catch (e) {
+        final msg = e.toString().toLowerCase();
+        final looksUnauthorized = msg.contains('401') || msg.contains('unauthorized');
+        if (looksUnauthorized) {
+          // Attempt one refresh-and-retry
+          await _auth.checkAndRefreshToken();
+          token = _auth.accessToken.value;
+          if (token.isNotEmpty) {
+            fetchedFeedbacks = await _feedbackService.getFeedbacks(token: token);
+          } else {
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
+      }
       
       feedbacks.assignAll(fetchedFeedbacks);
       

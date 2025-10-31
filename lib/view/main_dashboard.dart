@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
+import 'package:stackle_admin/controllers/stats_controller.dart';
+import 'package:stackle_admin/controllers/notification_controller.dart';
+import 'package:stackle_admin/controllers/hr_controller.dart';
 import 'package:stackle_admin/core/routing.dart';
 import 'package:stackle_admin/view/accounts/accounts_screen.dart';
 import 'package:stackle_admin/view/dashboard.dart';
@@ -8,7 +11,6 @@ import 'package:stackle_admin/view/manageHR/manage_hr_screen.dart';
 import 'package:stackle_admin/view/manage_Professionals/manage_professional_screen.dart';
 // import 'package:stackle_admin/view/requests/request_screen.dart';
 import 'package:stackle_admin/view/settings/blocked_users_screen.dart';
-import 'package:stackle_admin/view/settings/notification_screen.dart';
 import 'package:stackle_admin/view/settings/settings_screen.dart';
 import 'package:stackle_admin/widgets/side_bar.dart';
 
@@ -29,12 +31,49 @@ class _MainDashboardState extends State<MainDashboard> {
     super.initState();
     // Initialize selected index from widget parameter
     selectedIndex = widget.initialIndex;
-    // Use Get.put to register the AuthController so it can be found by other controllers
-    authController = Get.put(AuthController());
+    // Use the globally registered AuthController; do NOT create a new one here
+    // to avoid multiple instances and token/state mismatches.
+    authController = Get.find<AuthController>();
 
     // Fetch current user data after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authController.fetchCurrentUser();
+      // Proactively refresh other controllers once token is available to avoid 401s
+      if (authController.accessToken.value.isNotEmpty) {
+        // Stats
+        if (Get.isRegistered<StatsController>()) {
+          final stats = Get.find<StatsController>();
+          stats.fetchTotals();
+        }
+        // Notifications
+        if (Get.isRegistered<NotificationController>()) {
+          final notif = Get.find<NotificationController>();
+          notif.fetchRecipients();
+          notif.fetchNotifications();
+        }
+        // HR/Organizations
+        if (Get.isRegistered<HRController>()) {
+          final hr = Get.find<HRController>();
+          hr.fetchOrganizations();
+        }
+      } else {
+        // Listen once for token availability then trigger refreshes
+        ever(authController.accessToken, (val) {
+          if (val.toString().isNotEmpty) {
+            if (Get.isRegistered<StatsController>()) {
+              Get.find<StatsController>().fetchTotals();
+            }
+            if (Get.isRegistered<NotificationController>()) {
+              final notif = Get.find<NotificationController>();
+              notif.fetchRecipients();
+              notif.fetchNotifications();
+            }
+            if (Get.isRegistered<HRController>()) {
+              Get.find<HRController>().fetchOrganizations();
+            }
+          }
+        });
+      }
     });
   }
 
