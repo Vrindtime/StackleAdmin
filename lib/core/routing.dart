@@ -23,7 +23,7 @@ class AppRoutes {
   static const String settings = '/dashboard/settings';
   static const String hrDetails = '/dashboard/hr/details';
   static const String hrJobDetails = '/dashboard/hr/job-details';
-  static const String hrChatScreen = '/dashboard/hr/details/chatlist';
+  static const String hrChatScreen = '/dashboard/hr/details/chatlists/';
 
 
   static List<GetPage> getPages = [
@@ -37,7 +37,7 @@ class AppRoutes {
     GetPage(name: blocked, page: () => const MainDashboard(initialIndex: 4)),
     GetPage(name: settings, page: () => const MainDashboard(initialIndex: 5)),
     GetPage(name: notificationScreen, page: () => const NotificationScreen()),
-    GetPage(name: hrDetails, page: () => HrDetailsScreen(organization: Get.arguments as Organization)),
+  GetPage(name: hrDetails, page: () => HrDetailsScreen(organization: Get.arguments as Organization?)),
     GetPage(name: hrJobDetails, page: () {
       final args = Get.arguments as Map<String, dynamic>;
       return HRJobDetailScreen(job: args['job'] as job_model.Job, organizationName: args['organizationName'] as String);

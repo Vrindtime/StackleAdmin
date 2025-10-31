@@ -1,13 +1,16 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:get/get.dart';
 import 'package:stackle_admin/core/api_base.dart';
 import 'package:stackle_admin/data/models/push_notification.dart';
+import 'package:stackle_admin/controllers/auth_controller.dart';
 
 class NotificationService {
   NotificationService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
+  final AuthController _auth = Get.find<AuthController>();
 
   /// Sends a push notification to the backend.
   ///
@@ -23,10 +26,18 @@ class NotificationService {
   /// When `broadcast` is true the `user_ids` key is ignored and notifications
   /// are sent to every available device. When `broadcast` is false the backend
   /// targets the provided `user_ids` list.
+  /// Send a notification. If `token` is omitted the current AuthController
+  /// access token will be used (and refreshed if needed).
   Future<SendNotificationResult> sendNotification({
-    required String token,
+    String? token,
     required PushNotificationRequest request,
   }) async {
+    // Ensure token is fresh
+    if (token == null) {
+      await _auth.checkAndRefreshToken();
+      token = _auth.accessToken.value;
+    }
+
     final normalizedRecipientIds = request.normalizedRecipientIds.toSet().toList();
 
     if (request.recipientIds.isNotEmpty && normalizedRecipientIds.isEmpty) {
@@ -47,9 +58,13 @@ class NotificationService {
   }
 
   Future<SendNotificationResult> _sendSelfNotification({
-    required String token,
+    String? token,
     required PushNotificationRequest request,
   }) async {
+    if (token == null) {
+      await _auth.checkAndRefreshToken();
+      token = _auth.accessToken.value;
+    }
     final uri = Uri.parse('$baseUrl/notifications/');
     final response = await _client.post(
       uri,
@@ -79,10 +94,14 @@ class NotificationService {
   }
 
   Future<SendNotificationResult> _sendBulkNotification({
-    required String token,
+    String? token,
     required PushNotificationRequest request,
     required List<int> recipientIds,
   }) async {
+    if (token == null) {
+      await _auth.checkAndRefreshToken();
+      token = _auth.accessToken.value;
+    }
     if (recipientIds.isEmpty) {
       return _sendSelfNotification(token: token, request: request);
     }
@@ -201,10 +220,14 @@ class NotificationService {
   }
 
   Future<SendNotificationResult> _postTargetedNotification({
-    required String token,
+    String? token,
     required PushNotificationRequest request,
     required int recipientId,
   }) async {
+    if (token == null) {
+      await _auth.checkAndRefreshToken();
+      token = _auth.accessToken.value;
+    }
     final uri = Uri.parse('$baseUrl/notifications/$recipientId/');
     final response = await _client.post(
       uri,
@@ -247,8 +270,13 @@ class NotificationService {
   /// When the endpoint is not available this method will propagate the 404 so
   /// callers can decide whether to surface it to the UI.
   Future<List<PushNotification>> fetchNotifications({
-    required String token,
+    String? token,
   }) async {
+    if (token == null) {
+      await _auth.checkAndRefreshToken();
+      token = _auth.accessToken.value;
+    }
+
     final uri = Uri.parse('$baseUrl/notifications/');
     final response = await _client.get(
       uri,

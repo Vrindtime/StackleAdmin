@@ -12,9 +12,8 @@ import 'package:stackle_admin/core/routing.dart';
 
 // New dynamic HR details screen (see professional_details_screen for inspiration)
 class HrDetailsScreen extends StatefulWidget {
-  final Organization organization;
-  const HrDetailsScreen({Key? key, required this.organization})
-      : super(key: key);
+  final Organization? organization;
+  const HrDetailsScreen({super.key, this.organization});
 
   @override
   State<HrDetailsScreen> createState() => _HrDetailsScreenState();
@@ -60,9 +59,32 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
     userController = Get.isRegistered<UserController>()
         ? Get.find<UserController>()
         : Get.put(UserController(), permanent: true);
-    hrController.setCurrentOrganization(widget.organization);
-    userController.fetchUserById(widget.organization.userId);
-    _seedInlineControllers(widget.organization);
+
+    // If an Organization object was passed to the widget, use it immediately.
+    // Otherwise try to resolve orgId from Get.arguments or Get.parameters and
+    // fetch/resolve the organization asynchronously.
+    if (widget.organization != null) {
+      hrController.setCurrentOrganization(widget.organization!);
+      userController.fetchUserById(widget.organization!.userId);
+      _seedInlineControllers(widget.organization!);
+    } else {
+      // Resolve orgId from arguments or url parameters
+      final arg = Get.arguments;
+      int? orgId;
+      if (arg is int) {
+        orgId = arg;
+      } else if (arg is Map && arg['orgId'] is int) {
+        orgId = arg['orgId'] as int;
+      }
+      if (orgId == null) {
+        final p = Get.parameters['orgId'];
+        if (p != null) orgId = int.tryParse(p);
+      }
+
+      if (orgId != null) {
+        _loadOrgFromId(orgId);
+      }
+    }
   }
 
   void _seedInlineControllers(Organization org) {
@@ -88,7 +110,7 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
   void _toggleEdit() {
     final org = hrController.currentOrganization.value ?? widget.organization;
     if (!_editMode) {
-      _seedInlineControllers(org);
+      if (org != null) _seedInlineControllers(org);
     }
     setState(() {
       _editMode = !_editMode;
@@ -97,7 +119,7 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
 
   void _cancelEdit() {
     final org = hrController.currentOrganization.value ?? widget.organization;
-    _seedInlineControllers(org); // revert changes
+    if (org != null) _seedInlineControllers(org); // revert changes
     setState(() {
       _editMode = false;
       _saving = false;
@@ -111,6 +133,7 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
       _saving = true;
     });
     final org = hrController.currentOrganization.value ?? widget.organization;
+  if (org == null) return;
     await hrController.updateOrganization(
       org.id,
       name: _nameCtrl.text.trim(),
@@ -245,6 +268,30 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
     );
   }
 
+  Future<void> _loadOrgFromId(int orgId) async {
+    // Try local cache first
+    Organization? org = hrController.organizations.where((o) => o.id == orgId).isNotEmpty
+        ? hrController.organizations.where((o) => o.id == orgId).first
+        : null;
+
+    if (org == null) {
+      // Fetch organizations and try again
+      await hrController.fetchOrganizations();
+      org = hrController.organizations.where((o) => o.id == orgId).isNotEmpty
+          ? hrController.organizations.where((o) => o.id == orgId).first
+          : null;
+    }
+
+    if (org != null) {
+      hrController.setCurrentOrganization(org);
+      userController.fetchUserById(org.userId);
+      _seedInlineControllers(org);
+      setState(() {});
+    } else {
+      Get.snackbar('Error', 'Organization not found (ID: $orgId)', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -263,8 +310,10 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
         _buildHeader(isMobile),
         const SizedBox(height: 24),
         Expanded(child: Obx(() {
-          final org =
-              hrController.currentOrganization.value ?? widget.organization;
+          final org = hrController.currentOrganization.value ?? widget.organization;
+          if (org == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
           return SingleChildScrollView(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,19 +347,19 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: Obx(() {
-              final org =
-                  hrController.currentOrganization.value ?? widget.organization;
-              final initials = org.name.isNotEmpty
-                  ? org.name
-                      .split(' ')
-                      .map((s) => s.isNotEmpty ? s[0] : '')
-                      .join()
-                      .toUpperCase()
-                  : 'O';
-              final logoUrl = (org.logo ?? '').isNotEmpty
-                  ? _resolveMediaUrl(org.logo!)
-                  : '';
-              return Row(children: [
+        final org = hrController.currentOrganization.value ?? widget.organization;
+        if (org == null) return const SizedBox.shrink();
+        final initials = org.name.isNotEmpty
+          ? org.name
+            .split(' ')
+            .map((s) => s.isNotEmpty ? s[0] : '')
+            .join()
+            .toUpperCase()
+          : 'O';
+        final logoUrl = (org.logo ?? '').isNotEmpty
+          ? _resolveMediaUrl(org.logo!)
+          : '';
+        return Row(children: [
                 CircleAvatar(
                   radius: 36,
                   backgroundColor: Colors.blue[50],
@@ -343,10 +392,14 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-            onPressed: () => Get.toNamed(
+            onPressed: () {
+              final org = hrController.currentOrganization.value ?? widget.organization;
+              if (org == null) return;
+              Get.toNamed(
                 AppRoutes.hrChatScreen,
-                arguments: widget.organization.userId,
-              ),
+                arguments: org.id,
+              );
+            },
             icon: Icon(Icons.chat, size: 18, color: Colors.orange[200]!),
             label: Text('Chat',
                 style: TextStyle(fontWeight: FontWeight.w600,color: Colors.orange[200]!)),
@@ -403,6 +456,7 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
           Obx(() {
             final org =
                 hrController.currentOrganization.value ?? widget.organization;
+            if (org == null) return const SizedBox.shrink();
             return PopupMenuButton<String>(
               color: Colors.white,
               tooltip: 'More actions',
@@ -538,8 +592,10 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
             if (userController.hasError.value) {
               return _errorBox(
                   'Failed to load user', userController.errorMessage.value,
-                  onRetry: () =>
-                      userController.fetchUserById(widget.organization.userId));
+                  onRetry: () {
+                final uid = hrController.currentOrganization.value?.userId ?? widget.organization?.userId;
+                if (uid != null) userController.fetchUserById(uid);
+              });
             }
             final User? user = userController.user.value;
             if (user == null)
@@ -941,12 +997,16 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
   // Removed placeholder block method (real implementation wired into menu)
 
   void _handleApprove() {
+    final org = hrController.currentOrganization.value ?? widget.organization;
+    if (org == null) {
+      Get.snackbar('Error', 'Organization not loaded', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     showDialog(
         context: context,
         builder: (_) => AlertDialog(
                 title: const Text('Approve Organization'),
-                content:
-                    Text('Approve organization ID: ${widget.organization.id}?'),
+                content: Text('Approve organization ID: ${org.id}?'),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(context),
@@ -960,20 +1020,23 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
                           elevation: 0),
                       onPressed: () {
                         Navigator.pop(context);
-                        hrController
-                            .approveOrganization(widget.organization.id);
+                        hrController.approveOrganization(org.id);
                       },
                       child: const Text('Approve')),
                 ]));
   }
 
   void _handleReject() {
+    final org = hrController.currentOrganization.value ?? widget.organization;
+    if (org == null) {
+      Get.snackbar('Error', 'Organization not loaded', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     showDialog(
         context: context,
         builder: (_) => AlertDialog(
                 title: const Text('Reject Organization'),
-                content:
-                    Text('Reject organization ID: ${widget.organization.id}?'),
+                content: Text('Reject organization ID: ${org.id}?'),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(context),
@@ -987,7 +1050,7 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
                           elevation: 0),
                       onPressed: () {
                         Navigator.pop(context);
-                        hrController.rejectOrganization(widget.organization.id);
+                        hrController.rejectOrganization(org.id);
                       },
                       child: const Text('Reject')),
                 ]));
@@ -995,6 +1058,10 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
 
   void _handleRevokeApproval() {
     final org = hrController.currentOrganization.value ?? widget.organization;
+    if (org == null) {
+      Get.snackbar('Error', 'Organization not loaded', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -1224,6 +1291,10 @@ class _HrDetailsScreenState extends State<HrDetailsScreen> {
       );
   void _openJobsList() async {
     final org = hrController.currentOrganization.value ?? widget.organization;
+    if (org == null) {
+      Get.snackbar('Error', 'Organization not loaded', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     // Always force refresh to avoid stale jobs
     await hrController.fetchOrganizationJobs(org.id, force: true);
     // Show dialog with jobs
