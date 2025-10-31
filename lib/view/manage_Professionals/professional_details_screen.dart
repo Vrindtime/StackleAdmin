@@ -7,11 +7,12 @@ import 'package:stackle_admin/data/models/user.dart';
 import 'package:stackle_admin/controllers/professional_controller.dart';
 import 'package:stackle_admin/controllers/user_controller.dart';
 import 'package:stackle_admin/core/api_base.dart';
+// Chat: client <-> organization (simple convo list)
+import 'package:stackle_admin/view/chat/client_org_chat_screen.dart';
 
 class ProfessionalDetailScreen extends StatefulWidget {
   final Client client;
-  const ProfessionalDetailScreen({Key? key, required this.client})
-      : super(key: key);
+  const ProfessionalDetailScreen({super.key, required this.client});
 
   @override
   State<ProfessionalDetailScreen> createState() =>
@@ -368,8 +369,19 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
                 ),
         ),
         const SizedBox(width: 8),
-      ] else
+      ] else ...[
+        // Chat button: opens a simple client <-> organization chat screen
+        IconButton(
+          tooltip: 'Chat',
+          onPressed: () {
+            final client = professionalController.currentClient.value ?? widget.client;
+            // Navigate to the client-org chat screen passing the client id
+            Get.to(() => ClientOrgChatScreen(clientId: client.clientId, clientName: userController.user.value?.name ?? 'Client'));
+          },
+          icon: const Icon(Icons.chat_bubble_outline, color: Colors.black54),
+        ),
         const SizedBox(width: 8),
+      ],
       Obx(() {
         final user = userController.user.value;
         final isLoadingStatus = userController.isLoadingBlockStatus.value;
