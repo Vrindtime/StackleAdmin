@@ -65,7 +65,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
     const double baseWidth = 1200;
     double scale = width / baseWidth;
     const double minScale = 0.7;
-    const double maxScale = 1.5;
+    const double maxScale = 1.07;
     scale = math.max(minScale, math.min(maxScale, scale));
     // Apply non-linear easing for smoother scaling
     scale = math.pow(scale, 0.8) as double;
@@ -141,7 +141,8 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
           bool isTablet =
               constraints.maxWidth >= 768 && constraints.maxWidth < 1024;
           bool isDesktop = constraints.maxWidth >= 1024;
-          double scale = _computeScale(constraints.maxWidth);
+          // FIND SCALE MAIN
+          double scale = _computeScale(constraints.maxWidth) * 0.78;
 
           return Row(
             children: [
@@ -244,7 +245,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
             Obx(() => Text(
               professionalController.currentFilterText,
               style: TextStyle(
-                fontSize: 16 * scale,
+                fontSize: 21 * scale,
                 color: Colors.black87,
                 fontWeight: FontWeight.w400,
               ),
@@ -253,7 +254,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
             Obx(() => Text(
               '${professionalController.displayedClients.length} professionals',
               style: TextStyle(
-                fontSize: 12 * scale,
+                fontSize: 16 * scale,
                 color: Colors.grey[600],
               ),
             )),
@@ -267,7 +268,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
               spacing: 8 * scale,
               runSpacing: 8 * scale,
               children: [
-                _buildFilterButton('All', ProfessionalFilter.all, scale),
+                _buildFilterButton('All', ProfessionalFilter.all, scale*1.2),
                 _buildFilterButton('Approved', ProfessionalFilter.approved, scale),
                 _buildFilterButton('Rejected', ProfessionalFilter.rejected, scale),
               ],
@@ -286,7 +287,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
                   Text(
                     'Total Professionals',
                     style: TextStyle(
-                      fontSize: 14 * scale,
+                      fontSize: 18 * scale,
                       color: Colors.black87,
                     ),
                   ),
@@ -362,6 +363,7 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
   }
 
   Widget _buildFilterButton(String text, ProfessionalFilter filter, double scale) {
+    scale = scale * 1.4;
     return Obx(() => ElevatedButton(
       onPressed: () => professionalController.applyFilter(filter),
       style: ElevatedButton.styleFrom(
@@ -502,13 +504,13 @@ class _ManageProfessionalsScreenState extends State<ManageProfessionalsScreen> {
       crossAxisCount = 1; // mobile
     } else if (width < 1350) {
       crossAxisCount = 2; // tablet
-    } else if (width < 1700) {
+    } else if (width < 1500) {
       crossAxisCount = 3; // medium desktop
     } else {
       crossAxisCount = 4; // large desktop
     }
 
-    double childAspectRatio = 1.64;
+    double childAspectRatio = 1.44;
     
     if (width < 350) {
       childAspectRatio = 1.5;
