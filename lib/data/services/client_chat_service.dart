@@ -1,41 +1,70 @@
 import 'dart:convert';
 import 'package:get/get.dart';
-// import 'package:http/http.dart' as http; // enable when implementing API calls
+import 'package:http/http.dart' as http;
 import 'package:stackle_admin/core/api_base.dart';
-// import 'package:stackle_admin/controllers/auth_controller.dart';
+import 'package:stackle_admin/data/models/admin_chat_models.dart';
 
-/// Placeholder service for client <-> organization chat API.
-///
-/// Implement the real HTTP calls when the API is ready. For now these
-/// methods return empty data structures so the UI can be wired up.
+/// Service for client <-> organization chat API with admin endpoints.
 class ClientChatService {
-  // final AuthController _auth = Get.find<AuthController>();
+  /// Calls GET /admin/clients/{client_id}/conversations
+  /// Requires an admin token passed in `token`.
+  Future<ClientConversationsResponse> adminListClientConversations(String? token, int clientId) async {
+  // Note: API routes for chat are under /chat/admin/... on the server
+  final url = Uri.parse('$baseUrl/chat/admin/clients/$clientId/conversations');
+    final headers = <String, String>{'Accept': 'application/json'};
+    if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
 
-  /// Returns a list of conversation objects for the given client id.
-  /// Expected server shape: List<Map<String,dynamic>> where each item contains
-  /// conversation id, org info and summary fields.
-  Future<List<dynamic>> fetchConversationsForClient(int clientId) async {
-    // TODO: replace with real HTTP request
-    // final url = Uri.parse('$baseUrl/chat/clients/$clientId/conversations');
-    // final resp = await http.get(url, headers: { 'Authorization': 'Bearer \\${_auth.accessToken.value}' });
-    // if (resp.statusCode != 200) throw Exception('Failed to load');
-    // final body = json.decode(resp.body);
-    // return (body as List).cast<dynamic>();
+  final resp = await http.get(url, headers: headers);
 
-    await Future.delayed(const Duration(milliseconds: 250));
-    return <dynamic>[]; // placeholder empty list
+    if (resp.statusCode == 403) {
+      throw Exception('Forbidden: admin access required');
+    }
+    if (resp.statusCode == 404) {
+      // include response body when available to aid debugging
+      final body = resp.body.isNotEmpty ? resp.body : null;
+      throw Exception('Client not found${body != null ? ': $body' : ''}');
+    }
+    if (resp.statusCode != 200) {
+      throw Exception('Failed to load conversations (status ${resp.statusCode}): ${resp.body}');
+    }
+
+    final dynamic body = json.decode(resp.body);
+    if (body is! Map<String, dynamic>) {
+      throw Exception('Unexpected response format from conversations endpoint: expected object');
+    }
+
+    return ClientConversationsResponse.fromJson(body);
   }
 
-  /// Returns messages for a single conversation id.
-  Future<List<dynamic>> fetchMessagesForConversation(int conversationId) async {
-    // TODO: replace with real HTTP request
-    // final url = Uri.parse('$baseUrl/chat/conversations/$conversationId/messages');
-    // final resp = await http.get(url, headers: { 'Authorization': 'Bearer \\${_auth.accessToken.value}' });
-    // if (resp.statusCode != 200) throw Exception('Failed to load messages');
-    // final body = json.decode(resp.body);
-    // return (body as List).cast<dynamic>();
+  /// Calls GET /admin/conversations/{conversation_id}/message
+  /// Returns a list of MessageModel parsed from the admin compact format.
+  Future<List<MessageModel>> adminGetConversationMessages(String? token, int conversationId) async {
+  // Ensure /chat/ prefix matches server routes
+  final url = Uri.parse('$baseUrl/chat/admin/conversations/$conversationId/message');
+    final headers = <String, String>{'Accept': 'application/json'};
+    if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
 
-    await Future.delayed(const Duration(milliseconds: 250));
-    return <dynamic>[]; // placeholder
+    final resp = await http.get(url, headers: headers);
+
+    if (resp.statusCode == 403) {
+      throw Exception('Forbidden: admin access required');
+    }
+    if (resp.statusCode == 404) {
+      final body = resp.body.isNotEmpty ? resp.body : null;
+      throw Exception('Conversation not found${body != null ? ': $body' : ''}');
+    }
+    if (resp.statusCode != 200) {
+      throw Exception('Failed to load messages (status ${resp.statusCode}): ${resp.body}');
+    }
+
+    final dynamic body = json.decode(resp.body);
+    if (body is! List) {
+      throw Exception('Unexpected response format from messages endpoint: expected list');
+    }
+
+  return body
+    .whereType<Map<String, dynamic>>()
+    .map((e) => MessageModel.fromJson(Map<String, dynamic>.from(e)))
+    .toList();
   }
 }

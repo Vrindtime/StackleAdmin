@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:stackle_admin/data/services/client_chat_service.dart';
+import 'package:stackle_admin/controllers/auth_controller.dart';
+import 'package:stackle_admin/data/models/admin_chat_models.dart';
 
 /// Controller for client <-> organization chats (simple flows).
 /// This is a placeholder implementation — wire up API in `ClientChatService` later.
@@ -21,10 +23,37 @@ class ClientChatController extends GetxController {
     errorMessage.value = null;
     clientId.value = id;
     try {
-      final res = await _service.fetchConversationsForClient(id);
+      String? token;
+      if (Get.isRegistered<AuthController>()) {
+        final auth = Get.find<AuthController>();
+        await auth.checkAndRefreshToken();
+        token = auth.accessToken.value;
+      }
+
+      final ClientConversationsResponse resp = await _service.adminListClientConversations(token, id);
+      // debug
+      try {
+        print('ClientChatController: fetched ${resp.conversations.length} conversations for client ${resp.client.id}');
+      } catch (_) {}
       conversations.clear();
-      if (res is List) {
-        conversations.addAll(res.whereType<Map>().map((e) => Map<String, dynamic>.from(e)));
+      // Convert typed models to map shape expected by existing UI
+      for (final c in resp.conversations) {
+        conversations.add({
+          'id': c.id,
+          'organization': {
+            'id': c.organization.id,
+            'name': c.organization.name,
+            'logo': c.organization.avatar ?? '',
+            'avatar': c.organization.avatar ?? '',
+          },
+          'last_message': c.lastMessageText ?? '',
+          'last_message_text': c.lastMessageText,
+          'last_message_timestamp': c.lastMessageTimestamp?.toIso8601String(),
+          'updated_at': c.updatedAt.toIso8601String(),
+          'is_blocked': c.isBlocked,
+          'isBlocked': c.isBlocked,
+          'blocked_by': c.blockedBy,
+        });
       }
     } catch (e) {
       errorMessage.value = e.toString();
@@ -38,10 +67,32 @@ class ClientChatController extends GetxController {
     isLoadingMessages.value = true;
     messagesError.value = null;
     try {
-      final res = await _service.fetchMessagesForConversation(conversationId);
+      String? token;
+      if (Get.isRegistered<AuthController>()) {
+        final auth = Get.find<AuthController>();
+        await auth.checkAndRefreshToken();
+        token = auth.accessToken.value;
+      }
+
+      final List<MessageModel> res = await _service.adminGetConversationMessages(token, conversationId);
       messages
         ..clear()
-        ..addAll(res.whereType<Map>().map((e) => Map<String, dynamic>.from(e)));
+        ..addAll(res.map((m) => {
+          'id': m.id,
+          'message': m.text ?? '',
+          'text': m.text ?? '',
+          'message_type': m.messageType,
+          'file_url': m.fileUrl,
+          'sent_at': m.timestamp.toIso8601String(),
+          'timestamp_ms': m.timestampMs,
+          'sender_user_id': m.senderUserId,
+          'sender_name': m.senderName,
+          'sender_type': m.senderType,
+          'sender_entity_id': m.senderEntityId,
+          'sender_avatar': m.senderAvatar,
+          'is_deleted': m.isDeleted,
+          'read_at': m.readAt?.toIso8601String(),
+        }).toList());
     } catch (e) {
       messagesError.value = e.toString();
       messages.clear();
