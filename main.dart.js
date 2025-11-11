@@ -102690,7 +102690,7 @@ while(true)switch(s){case 0:o=A.bE("https://stackle.vrindtime.com/api/auth/login
 n=t.N
 m=A.a4(["Content-Type","application/json"],n,n)
 s=3
-return A.n(A.le(o,B.O.q7(A.a4(["email",a,"password",b,"device_id","admin-web"],n,n),null),m),$async$j9)
+return A.n(A.le(o,B.O.q7(A.a4(["email",a,"password",b,"role","admin","device_id","admin-web"],n,n),null),m),$async$j9)
 case 3:l=d
 n=l.b
 m=l.e
