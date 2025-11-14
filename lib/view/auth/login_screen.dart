@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: _inputDecoration('Email', 'test@admin.com'),
+            decoration: _inputDecoration('Email','email@mail.com'),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextFormField(
             controller: _passwordController,
             obscureText: true,
-            decoration: _inputDecoration('Password', 'At least 8 characters: Test@123'),
+            decoration: _inputDecoration('Password', 'At least 8 characters'),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your password';

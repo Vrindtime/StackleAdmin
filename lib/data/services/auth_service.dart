@@ -11,6 +11,7 @@ class AuthService {
       body: jsonEncode({
         "email": email,
         "password": password,
+        "role": "admin",
         "device_id": "admin-web"
       }), // Added device_id
     );
