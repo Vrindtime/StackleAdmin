@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:stackle_admin/core/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stackle_admin/core/api_base.dart' as api_base;
 import 'package:stackle_admin/controllers/auth_controller.dart';
 import 'package:stackle_admin/data/models/push_notification.dart';
 import 'package:stackle_admin/data/models/user.dart';
@@ -15,9 +15,9 @@ class NotificationController extends GetxController {
     UserService? userService,
     // Optional WebSocket service for injection/testing
     WebSocketNotificationService? wsService,
-  })  : _notificationService = notificationService ?? NotificationService(),
-        _userService = userService ?? UserService(),
-        _wsService = wsService;
+  }) : _notificationService = notificationService ?? NotificationService(),
+       _userService = userService ?? UserService(),
+       _wsService = wsService;
 
   final NotificationService _notificationService;
   final UserService _userService;
@@ -25,7 +25,8 @@ class NotificationController extends GetxController {
   // --- New WebSocket Properties ---
   WebSocketNotificationService? _wsService;
   StreamSubscription<PushNotification>? _wsSubscription;
-  final Rxn<PushNotification> lastNewNotification = Rxn<PushNotification>(); // nullable reactive
+  final Rxn<PushNotification> lastNewNotification =
+      Rxn<PushNotification>(); // nullable reactive
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController messageController = TextEditingController();
@@ -43,7 +44,6 @@ class NotificationController extends GetxController {
   final RxString notificationsError = ''.obs;
 
   final RxList<PushNotification> notifications = <PushNotification>[].obs;
-  
 
   @override
   void onInit() {
@@ -53,12 +53,7 @@ class NotificationController extends GetxController {
 
     // Only connect if we have an access token available
     if (authController.accessToken.value.isNotEmpty) {
-      _initWebSocket(
-        userId: authController.currentUser.value != null
-            ? authController.currentUser.value!.id.toString()
-            : 'unknown',
-        token: authController.accessToken.value,
-      );
+      _initWebSocket(token: authController.accessToken.value);
     }
 
     fetchRecipients();
@@ -76,21 +71,20 @@ class NotificationController extends GetxController {
   }
 
   // --- New WebSocket Logic ---
-  void _initWebSocket({required String userId, required String token}) {
-    // You should get the base URL from settings/env vars
-    final baseUrl = "wss://stackle.vrindtime.com/ws/notifications/$userId/";
+  void _initWebSocket({required String token}) {
+    final wsUrl = "${api_base.wsUrl}/notifications/";
 
-    _wsService = _wsService ?? WebSocketNotificationService(
-      baseUrl: baseUrl,
-      identifierId: userId,
-      authToken: token,
+    _wsService =
+        _wsService ??
+        WebSocketNotificationService(baseUrl: wsUrl, authToken: token);
+
+    _wsSubscription = _wsService!.notificationsStream.listen(
+      _handleIncomingNotification,
+      onError: (err) {
+        // Optionally handle subscription errors
+        print('WebSocket subscription error: $err');
+      },
     );
-
-    _wsSubscription = _wsService!.notificationsStream.listen(_handleIncomingNotification,
-        onError: (err) {
-      // Optionally handle subscription errors
-      print('WebSocket subscription error: $err');
-    });
     _wsService!.connect();
   }
 
@@ -130,10 +124,7 @@ class NotificationController extends GetxController {
         throw Exception('Authentication token missing. Please login again.');
       }
 
-      final fetched = await _userService.getUsers(
-        token: token,
-        search: search,
-      );
+      final fetched = await _userService.getUsers(token: token, search: search);
       recipients.assignAll(fetched);
     } catch (e) {
       errorMessage.value = e.toString();
@@ -156,7 +147,9 @@ class NotificationController extends GetxController {
         throw Exception('Authentication token missing. Please login again.');
       }
 
-      final fetched = await _notificationService.fetchNotifications(token: token);
+      final fetched = await _notificationService.fetchNotifications(
+        token: token,
+      );
       notifications.assignAll(fetched);
     } catch (e) {
       notificationsError.value = e.toString();
@@ -189,7 +182,10 @@ class NotificationController extends GetxController {
     final hasTitle = titleController.text.trim().isNotEmpty;
     final hasMessage = messageController.text.trim().isNotEmpty;
     final hasRecipients = sendToAll.value || selectedRecipientIds.isNotEmpty;
-    return hasTitle && hasMessage && hasRecipients && !isSendingNotification.value;
+    return hasTitle &&
+        hasMessage &&
+        hasRecipients &&
+        !isSendingNotification.value;
   }
 
   Future<bool> sendNotification() async {
@@ -226,7 +222,9 @@ class NotificationController extends GetxController {
       final created = result.created;
       final requestedCount = result.requestedCount;
       final defaultMessage = 'Notification sent successfully';
-      String message = result.message.isNotEmpty ? result.message : defaultMessage;
+      String message = result.message.isNotEmpty
+          ? result.message
+          : defaultMessage;
 
       if (created != null || requestedCount != null) {
         final processed = created ?? requestedCount ?? 0;

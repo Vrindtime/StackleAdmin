@@ -4,3 +4,4 @@
 // 
 // Production API base URL
 const String baseUrl = 'https://stackle.vrindtime.com/api';
+const String wsUrl = 'wss://stackle.vrindtime.com/ws';

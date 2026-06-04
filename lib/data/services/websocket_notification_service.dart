@@ -3,16 +3,16 @@ import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 // Ensure you have a model for your incoming WebSocket notification payload
-import 'package:stackle_admin/data/models/push_notification.dart'; 
+import 'package:stackle_admin/data/models/push_notification.dart';
 // Assuming PushNotification is the model for the received notification
 
 class WebSocketNotificationService {
-  final String baseUrl; // e.g., 'ws://192.168.1.73:8000'
-  final String identifierId;
+  final String baseUrl;
   final String authToken;
 
   WebSocketChannel? _channel;
-  StreamController<PushNotification> _incomingNotifications = StreamController.broadcast();
+  StreamController<PushNotification> _incomingNotifications =
+      StreamController.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   int _reconnectAttempt = 0;
@@ -20,17 +20,15 @@ class WebSocketNotificationService {
 
   WebSocketNotificationService({
     required this.baseUrl,
-    required this.identifierId,
     required this.authToken,
   });
 
   // Expose the stream of parsed notifications to the Controller
-  Stream<PushNotification> get notificationsStream => _incomingNotifications.stream;
+  Stream<PushNotification> get notificationsStream =>
+      _incomingNotifications.stream;
 
   String _buildUrl() {
-    // We'll use the query param method since it's common with Channels and simplifies web/mobile consistency
-    // Note: If you have configured Channels middleware to read headers, you might need IOWebSocketChannel for mobile.
-    return "$baseUrl/ws/noti/$identifierId/?token=$authToken";
+    return "${baseUrl}?token=$authToken";
   }
 
   void connect() {
@@ -49,7 +47,7 @@ class WebSocketNotificationService {
         onError: _onError,
         cancelOnError: true,
       );
-      
+
       _startHeartbeat();
       _reconnectAttempt = 0;
       print('WebSocket connected to $uri');
@@ -104,10 +102,14 @@ class WebSocketNotificationService {
 
   void _scheduleReconnect() {
     _reconnectAttempt++;
-    final delaySeconds = (_reconnectAttempt > 6) ? 30 : (1 << (_reconnectAttempt.clamp(0, 6)));
+    final delaySeconds = (_reconnectAttempt > 6)
+        ? 30
+        : (1 << (_reconnectAttempt.clamp(0, 6)));
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(Duration(seconds: delaySeconds), connect);
-    print('Scheduled reconnect in $delaySeconds seconds. Attempt: $_reconnectAttempt');
+    print(
+      'Scheduled reconnect in $delaySeconds seconds. Attempt: $_reconnectAttempt',
+    );
   }
 
   void _startHeartbeat() {

@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:stackle_admin/core/api_base.dart' as api_base;
 import 'package:get/get.dart';
 import '../models/organization.dart';
 import '../models/job.dart' as job_model;
 import '../../controllers/auth_controller.dart';
 
 class HRService {
-  final String baseUrl = 'https://stackle.vrindtime.com';
+  final String baseUrl = api_base.baseUrl;
   final AuthController authController = Get.find<AuthController>();
 
   bool enableDebugLogging = true; // toggle for verbose logging
