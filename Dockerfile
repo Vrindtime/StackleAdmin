@@ -13,6 +13,8 @@ RUN flutter build web --release
 # Step 2: Secure Runtime Stage
 FROM caddy:2-alpine
 
+RUN apk add --no-cache wget
+
 # Explicitly use your host GID/UID 988
 RUN addgroup -g 988 stackle && adduser -u 988 -G stackle -H -D stackle
 USER 988

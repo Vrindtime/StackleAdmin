@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    build:
-      context: .
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER_LOWERCASE}/Stackle-Web-Admin:latest
     expose:
       - "8080"
     networks:
