@@ -21,3 +21,4 @@ services:
 networks:
   caddy_gateway:
     external: true
+    
