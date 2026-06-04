@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class JobType {
   final String jobType;
 
@@ -106,16 +108,13 @@ class Job {
       isSubscribed: json['is_subscribed'] ?? false,
       jobTypes: (json['job_types'] as List<dynamic>?)
               ?.map((e) => JobType.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+              .toList() ?? [],
       jobImages: (json['job_images'] as List<dynamic>?)
               ?.map((e) => JobImage.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+              .toList() ?? [],
       jobSkills: (json['job_skills'] as List<dynamic>?)
               ?.map((e) => JobSkill.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+              .toList() ?? [],
     );
   }
 
@@ -197,6 +196,18 @@ class Organization {
   String get location => '$area, $city, $state';
   String get approvalStatus => isBlocked ? 'Blocked' : (isAdminApproved ? 'Approved' : 'Pending');
 
+  /// If [value] is a media object Map (or JSON string), extract the url key; otherwise return as string.
+  static String _extractUrl(dynamic value) {
+    if (value is Map) return (value['url'] ?? '').toString();
+    if (value is String && value.trim().startsWith('{')) {
+      try {
+        final parsed = jsonDecode(value);
+        if (parsed is Map) return (parsed['url'] ?? '').toString();
+      } catch (_) {}
+    }
+    return value?.toString() ?? '';
+  }
+
   factory Organization.fromJson(Map<String, dynamic> json) {
     return Organization(
       id: json['id'] ?? 0,
@@ -212,16 +223,14 @@ class Organization {
       latitude: json['latitude'] ?? '',
       longitude: json['longitude'] ?? '',
       description: json['description'] ?? '',
-      logo: json['logo'],
+      logo: _extractUrl(json['logo']),
       registrationNumber: json['registration_number'] ?? '',
       document: (json['document'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+              ?.map((e) => _extractUrl(e))
+              .toList() ?? [],
       images: (json['images'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+              ?.map((e) => _extractUrl(e))
+              .toList() ?? [],
       activeJobCount: json['active_job_count'] ?? 0,
       requestsCount: json['requests_count'] ?? 0,
       searchAppearanceCount: json['search_appearance_count'] ?? 0,

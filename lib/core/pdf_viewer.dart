@@ -18,7 +18,10 @@ Future<void> _downloadAndShare(Uri uri, BuildContext context) async {
     final filename = p.basename(uri.path).isNotEmpty ? p.basename(uri.path) : 'document.pdf';
     final file = File(p.join(tmpDir.path, filename));
     await file.writeAsBytes(bytes);
-    await Share.shareFiles([file.path], text: uri.toString());
+    await Share.shareXFiles(
+      [XFile(file.path)], 
+      text: uri.toString(),
+    );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error sharing file')));
   }

@@ -1,3 +1,17 @@
+import 'dart:convert';
+
+/// If [value] is a media object Map (or JSON string), extract the `url` key; otherwise return as string.
+String? _extractMediaUrl(dynamic value) {
+  if (value == null) return null;
+  if (value is Map) return (value['url'] ?? '').toString();
+  if (value is String && value.trim().startsWith('{')) {
+    try {
+      final parsed = jsonDecode(value);
+      if (parsed is Map) return (parsed['url'] ?? '').toString();
+    } catch (_) {}
+  }
+  return value.toString();
+}
 class ClientExperience {
   final String? title;
   final String? company;
@@ -32,7 +46,7 @@ class ClientExperience {
       company: json['employer'] ?? json['company'],
       duration: computeDuration(),
       description: json['location'] ?? json['description'],
-      experienceCertificate: json['experience_certificate'] ?? json['experienceCertificate'],
+      experienceCertificate: _extractMediaUrl(json['experience_certificate'] ?? json['experienceCertificate']),
     );
   }
 
@@ -106,7 +120,7 @@ class ClientEducation {
       startDate: json['start_date'],
       endDate: json['end_date'],
       grade: json['grade'],
-      certificate: json['certificate'],
+      certificate: _extractMediaUrl(json['certificate']),
     );
   }
 
@@ -207,8 +221,8 @@ class Client {
       pincode: json['pincode'],
       latitude: json['latitude']?.toDouble(),
       longitude: json['longitude']?.toDouble(),
-      resume: json['resume'],
-      image: json['image'],
+      resume: _extractMediaUrl(json['resume']),
+      image: _extractMediaUrl(json['image']),
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
       experiences: (json['experiences'] as List<dynamic>?)

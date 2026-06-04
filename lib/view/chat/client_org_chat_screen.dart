@@ -141,7 +141,8 @@ class _ClientOrgChatScreenState extends State<ClientOrgChatScreen> {
                                   final org = c['organization'] ?? c['org'] ?? <String,dynamic>{};
                                   final orgName = org is Map ? (org['name'] ?? org['title'] ?? 'Organization') : (org?.toString() ?? 'Organization');
                                   final lastMessage = c['last_message'] ?? c['lastMessage'] ?? c['preview'] ?? '';
-                                  final String orgLogo = (org is Map && (org['logo'] ?? org['image']) != null) ? (org['logo'] ?? org['image']).toString() : '';
+                                  final dynamic orgLogoRaw = org is Map ? (org['logo'] ?? org['image']) : null;
+                                  final String orgLogo = orgLogoRaw != null ? (orgLogoRaw is Map ? (orgLogoRaw['url'] ?? '').toString() : orgLogoRaw.toString()) : '';
                                   final ImageProvider<Object>? orgImage = (orgLogo.isNotEmpty) ? (NetworkImage(_resolveMediaUrl(orgLogo))) : null;
 
                                   final int? id = convId is int ? convId : int.tryParse(convId?.toString() ?? '');

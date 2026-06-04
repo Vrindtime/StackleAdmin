@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:get_storage_wasm/get_storage_wasm.dart';
 import 'package:stackle_admin/core/routing.dart';
 import 'package:stackle_admin/controllers/auth_controller.dart';
 
@@ -31,6 +31,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Stackle Admin',
         getPages: AppRoutes.getPages,
+        defaultTransition: Transition.fadeIn, 
+        transitionDuration: const Duration(milliseconds: 200),
       );
   }
 }

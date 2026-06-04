@@ -90,6 +90,12 @@ class ClientConversationsResponse {
   }
 }
 
+/// If [value] is a media object Map, extract the url key; otherwise return as string.
+String? _extractUrlFromMedia(dynamic value) {
+  if (value == null) return null;
+  if (value is Map) return (value['url'] ?? '').toString();
+  return value.toString();
+}
 class MessageModel {
   final int id;
   final String? text;
@@ -140,7 +146,7 @@ class MessageModel {
       id: json['id'] ?? 0,
       text: json['text'] ?? json['message'] ?? json['content'],
       messageType: json['message_type'] ?? json['type'],
-      fileUrl: json['file_url'] ?? json['fileUrl'] ?? json['file'],
+      fileUrl: _extractUrlFromMedia(json['file_url'] ?? json['fileUrl'] ?? json['file']),
       timestamp: timestamp,
       timestampMs: json['timestamp_ms'] is int ? json['timestamp_ms'] as int : (json['timestamp_ms'] is String ? int.tryParse(json['timestamp_ms']) : null),
       senderUserId: json['sender_user_id'] is int ? json['sender_user_id'] as int : (json['senderUserId'] is int ? json['senderUserId'] as int : null),

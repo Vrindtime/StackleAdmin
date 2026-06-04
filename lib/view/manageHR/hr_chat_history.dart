@@ -10,10 +10,7 @@ import 'package:stackle_admin/controllers/chat_controller.dart';
 import 'package:stackle_admin/controllers/org_chat_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-// dart:html is only available on web; we'll reference it guarded by kIsWeb at runtime.
-// Importing dart:html unconditionally is acceptable if this project targets web; if you
-// need cross-platform support without dart:html, we can switch to conditional imports.
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 class HRChatDetailScreen extends StatefulWidget {
   const HRChatDetailScreen({Key? key}) : super(key: key);
@@ -1017,7 +1014,8 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
 
     final bool isClient = _isFromClient(message);
 
-    final String fileUrl = (message['file_url'] ?? message['fileUrl'] ?? message['file'] ?? '').toString();
+    final dynamic fileField = message['file_url'] ?? message['fileUrl'] ?? message['file'] ?? '';
+    final String fileUrl = fileField is Map ? (fileField['url'] ?? '').toString() : fileField.toString();
     final bool hasFile = fileUrl.isNotEmpty;
 
     // derive file meta
@@ -1069,7 +1067,7 @@ class _HRChatDetailScreenState extends State<HRChatDetailScreen>
                             // On web open in a new tab; on other platforms fallback to copying URL
                             if (kIsWeb) {
                               try {
-                                html.window.open(fileUrl, '_blank');
+                                web.window.open(fileUrl, '_blank');
                               } catch (e) {
                                 // fallback to clipboard
                                 try {
