@@ -1,0 +1,54 @@
+name: Stackle Admin Deployment
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: stackle-admin
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Log into registry using GitHub token
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Navigate to the dedicated frontend admin directory
+            cd /srv/stackle-admin/flutter
+
+            # Pull only the new frontend image from the registry
+            docker compose pull frontend
+
+            # Rolling update: spins up the new version, runs health checks, swaps traffic, drops old container
+            docker compose up -d --no-deps frontend
+
+            # Clean up old images safely on the host
+            docker image prune -f
