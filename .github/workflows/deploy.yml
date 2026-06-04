@@ -41,23 +41,13 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: stackle-admin
           key: ${{ secrets.VPS_SSH_KEY }}
-          # 1. Map GitHub secrets to runner env variables
           envs: GITHUB_TOKEN,GITHUB_ACTOR
+          script: |
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            cd /srv/stackle-admin/flutter
+            docker compose pull frontend
+            docker compose up -d --no-deps frontend
+            docker image prune -f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-        script: |
-          # 2. Use the mapped environment variables on the remote host safely
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-
-          # Navigate to the dedicated frontend admin directory
-          cd /srv/stackle-admin/flutter
-
-          # Pull only the new frontend image from the registry
-          docker compose pull frontend
-
-          # Rolling update: spins up the new version, runs health checks, swaps traffic, drops old container
-          docker compose up -d --no-deps frontend
-
-          # Clean up old images safely on the host
-          docker image prune -f
