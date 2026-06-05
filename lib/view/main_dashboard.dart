@@ -5,7 +5,7 @@ import 'package:stackle_admin/controllers/stats_controller.dart';
 import 'package:stackle_admin/controllers/notification_controller.dart';
 import 'package:stackle_admin/controllers/hr_controller.dart';
 import 'package:stackle_admin/core/routing.dart';
-import 'package:stackle_admin/view/accounts/accounts_screen.dart';
+import 'package:stackle_admin/view/Accounts/accounts_screen.dart';
 import 'package:stackle_admin/view/dashboard.dart';
 import 'package:stackle_admin/view/manageHR/manage_hr_screen.dart';
 import 'package:stackle_admin/view/manage_Professionals/manage_professional_screen.dart';
@@ -85,7 +85,9 @@ class _MainDashboardState extends State<MainDashboard> {
     switch (index) {
       case 0:
         return DashboardScreen(
-            authController: authController, forceDesktop: !outerIsMobile);
+          authController: authController,
+          forceDesktop: !outerIsMobile,
+        );
       case 1:
         return ManageHRScreen();
       case 2:
@@ -98,7 +100,9 @@ class _MainDashboardState extends State<MainDashboard> {
         return const SettingsScreen();
       default:
         return DashboardScreen(
-            authController: authController, forceDesktop: !outerIsMobile);
+          authController: authController,
+          forceDesktop: !outerIsMobile,
+        );
     }
   }
 
@@ -156,9 +160,7 @@ class _MainDashboardState extends State<MainDashboard> {
                   isMobile: false,
                   selectedIndex: selectedIndex,
                 ),
-                Expanded(
-                  child: _screenForIndex(selectedIndex, isMobile),
-                ),
+                Expanded(child: _screenForIndex(selectedIndex, isMobile)),
               ],
             );
           }
