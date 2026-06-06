@@ -6,7 +6,7 @@ RUN apk add --no-cache thttpd
 # Create workspace directory
 WORKDIR /app
 
-# Copy the static web build artifacts directly into the container path
+# Copy the static web build artifacts from your current folder into the container
 COPY . /app
 
 # Run the static server on container port 80
