@@ -1,19 +1,9 @@
-FROM alpine:latest
+FROM nginx:alpine
 
-# Install Nginx for full modern MIME type support
-RUN apk add --no-cache nginx
+# Clean out the default Nginx placeholder files
+RUN rm -rf /usr/share/nginx/html/*
 
-# Create deployment directory
-WORKDIR /usr/share/nginx/html
+# Copy your static files into Nginx's verified public root
+COPY . /usr/share/nginx/html
 
-# Clean out default landing files
-RUN rm -rf ./*
-
-# Copy the static web build artifacts directly into nginx's public root
-COPY . .
-
-# Expose port 80 internally
 EXPOSE 80
-
-# Run Nginx persistently in the foreground
-CMD ["nginx", "-g", "daemon off;"]
