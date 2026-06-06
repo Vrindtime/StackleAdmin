@@ -44,10 +44,10 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 3273 # 🚀 Custom SSH Port configured here
+          port: 3273
           script: |
             # Navigate to your deployment folder
-            cd /opt/stackle-admin
+            cd /srv/stackle_admin
             
             # Log into GitHub Registry on the server securely
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
