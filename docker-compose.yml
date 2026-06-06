@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stackle_admin_app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
