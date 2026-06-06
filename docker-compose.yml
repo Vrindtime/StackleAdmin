@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web-app:
@@ -7,5 +7,9 @@ services:
       dockerfile: Dockerfile
     container_name: stackle_admin_app
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8080:80"
+    networks:
+      - caddy_gateway
+
+networks:
+  caddy_gateway:
+    external: true

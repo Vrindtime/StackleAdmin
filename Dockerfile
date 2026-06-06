@@ -1,13 +1,19 @@
 FROM alpine:latest
 
-# Install a tiny, highly efficient static web server
-RUN apk add --no-cache thttpd
+# Install Nginx for full modern MIME type support
+RUN apk add --no-cache nginx
 
-# Create workspace directory
-WORKDIR /app
+# Create deployment directory
+WORKDIR /usr/share/nginx/html
 
-# Copy the static web build artifacts from your current folder into the container
-COPY . /app
+# Clean out default landing files
+RUN rm -rf ./*
 
-# Run the static server on container port 80
-CMD ["thttpd", "-D", "-p", "80", "-d", "/app", "-u", "root"]
+# Copy the static web build artifacts directly into nginx's public root
+COPY . .
+
+# Expose port 80 internally
+EXPOSE 80
+
+# Run Nginx persistently in the foreground
+CMD ["nginx", "-g", "daemon off;"]
