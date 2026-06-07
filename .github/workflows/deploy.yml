@@ -27,7 +27,7 @@ jobs:
 
       - name: Set lowercase image name
         id: repo
-        run: echo "image=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/stackle-web-admin:latest" >> $GITHUB_OUTPUT
+        run: echo "image=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/stackleweb-admin:latest" >> $GITHUB_OUTPUT
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5

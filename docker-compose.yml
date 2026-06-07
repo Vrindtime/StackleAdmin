@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: ghcr.io/nived-manoj/stackle-web-admin:latest
+    image: ghcr.io/vrindtime/stackleweb-admin:latest
     expose:
       - "8080"
     networks:
