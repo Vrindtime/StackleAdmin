@@ -30,7 +30,7 @@ class HRService {
   Future<List<Organization>> getOrganizations() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/organisations/'),
+        Uri.parse('$baseUrl/organisations/'),
         headers: _getHeaders(),
       );
 
@@ -75,7 +75,7 @@ class HRService {
   Future<List<job_model.Job>> getOrganizationJobs(int organizationId) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/organisations/$organizationId/jobs/'),
+        Uri.parse('$baseUrl/organisations/$organizationId/jobs/'),
         headers: _getHeaders(),
       );
 
@@ -116,7 +116,7 @@ class HRService {
   // Approve organization
   Future<bool> approveOrganization(int organizationId) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/admin-approval/organisations/$organizationId/approve');
+      final uri = Uri.parse('$baseUrl/admin-approval/organisations/$organizationId/approve');
       final response = await http.post(
         uri,
         headers: _getHeaders(),
@@ -158,7 +158,7 @@ class HRService {
   // Reject organization
   Future<bool> rejectOrganization(int organizationId) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/admin-approval/organisations/$organizationId/reject');
+      final uri = Uri.parse('$baseUrl/admin-approval/organisations/$organizationId/reject');
       final response = await http.post(
         uri,
         headers: _getHeaders(),
@@ -211,7 +211,7 @@ class HRService {
     String? longitude,
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/organisations/$organizationId');
+      final uri = Uri.parse('$baseUrl/organisations/$organizationId');
       final request = http.MultipartRequest('PUT', uri);
       // Auth header
       final headers = _getHeaders();
@@ -253,7 +253,7 @@ class HRService {
   // Block organization
   Future<bool> blockOrganization(int organizationId) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/admin-approval/organisations/$organizationId/block');
+      final uri = Uri.parse('$baseUrl/admin-approval/organisations/$organizationId/block');
       final response = await http.post(uri, headers: _getHeaders());
       _log('POST BLOCK ORG -> ${uri.toString()} [${response.statusCode}]');
       if (response.statusCode >= 200 && response.statusCode < 300) return true;
@@ -268,7 +268,7 @@ class HRService {
   // Unblock organization
   Future<bool> unblockOrganization(int organizationId) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/admin-approval/organisations/$organizationId/unblock');
+      final uri = Uri.parse('$baseUrl/admin-approval/organisations/$organizationId/unblock');
       final response = await http.post(uri, headers: _getHeaders());
       _log('POST UNBLOCK ORG -> ${uri.toString()} [${response.statusCode}]');
       if (response.statusCode >= 200 && response.statusCode < 300) return true;
