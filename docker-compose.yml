@@ -1,5 +1,8 @@
 services:
   frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ghcr.io/vrindtime/stackleweb-admin:latest
     expose:
       - "8080"
